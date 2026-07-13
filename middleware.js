@@ -3,7 +3,6 @@ export const config = {
 };
 
 export default function middleware(req) {
-  const url = new URL(req.url);
   const basicAuth = req.headers.get('authorization');
 
   if (basicAuth) {
@@ -13,16 +12,16 @@ export default function middleware(req) {
     // ユーザー名とパスワードのチェック
     if (user === 'admin' && pwd === 'xctsw2zP2Z220312!') {
       return new Response(null, {
-        headers: { 'x-middleware-next': '1' } // Vercelにそのままページを表示させる合図
+        headers: { 'x-middleware-next': '1' }
       });
     }
   }
 
-  // サインイン画面を出す
-  return new Response('Authentication Required', {
+  // 👇 ここをブラウザがポップアップを出しやすい標準的な形式に変更しました
+  return new Response('Access Denied', {
     status: 401,
     headers: {
-      'WWW-Authenticate': 'Basic realm="Web サイトにサインイン"',
+      'www-authenticate': 'Basic realm="secure_site"',
     },
   });
 }
