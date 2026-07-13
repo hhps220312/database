@@ -12,8 +12,8 @@ export function middleware(req) {
     const authValue = basicAuth.split(' ')[1];
     const [user, pwd] = atob(authValue).split(':');
 
-    // ユーザー名とパスワードを設定
-    if (user === 'hajime' && pwd === 'xctsw2zP2Z220312!') {
+    // 👇 ユーザー名と新しいパスワードを設定しました
+    if (user === 'admin' && pwd === 'xctsw2zP2Z220312!') {
       return NextResponse.next();
     }
   }
