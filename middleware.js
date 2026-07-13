@@ -1,25 +1,25 @@
-import { NextResponse } from 'next/server';
-
 export const config = {
-  // サイト内のすべてのページ・画像・ファイルにサインインを要求する設定
   matcher: ['/(.*)'],
 };
 
-export function middleware(req) {
+export default function middleware(req) {
+  const url = new URL(req.url);
   const basicAuth = req.headers.get('authorization');
 
   if (basicAuth) {
     const authValue = basicAuth.split(' ')[1];
     const [user, pwd] = atob(authValue).split(':');
 
-    // 👇 ユーザー名と新しいパスワードを設定しました
+    // ユーザー名とパスワードのチェック
     if (user === 'admin' && pwd === 'xctsw2zP2Z220312!') {
-      return NextResponse.next();
+      return new Response(null, {
+        headers: { 'x-middleware-next': '1' } // Vercelにそのままページを表示させる合図
+      });
     }
   }
 
-  // 認証が間違っているか、まだ入力していない場合はサインイン画面を出す
-  return new NextResponse('Authentication Required', {
+  // サインイン画面を出す
+  return new Response('Authentication Required', {
     status: 401,
     headers: {
       'WWW-Authenticate': 'Basic realm="Web サイトにサインイン"',
