@@ -1,154 +1,424 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>H-Hデータベース</title>
-<!-- アイコン用（FontAwesome） -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-    /* 全体の基本スタイル */
-    body { font-family: sans-serif; background-color: #f8f9fa; color: #333; padding: 20px; }
-    h1 { text-align: center; color: #003067; }
-    .search-container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-    .form-group label { margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-    .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-    
-    /* お気に入りのボタンデザイン（そのまま流用） */
-    .button_solid016 { margin-top: 30px; text-align: center; }
-    .button_solid016 a {
-        background: #6bb6ff; border-radius: 3px; position: relative; display: flex; justify-content: center; align-items: center; margin: 0 auto; max-width: 240px; padding: 10px 25px; color: #003067; transition: 0.3s ease-in-out; font-weight: 600; border: 2px solid #000; z-index: 1; border-radius: 5px; text-decoration: none;
-    }
-    .button_solid016 a:before {
-        content: ""; width: 100%; height: 100%; position: absolute; z-index: -1; border: 2px solid #000; border-radius: 5px; background: #e1f3ff;
-        background-image: linear-gradient(45deg, #c8e4ff 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e4ff 0), linear-gradient(45deg, #c8e4ff 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e4ff 0);
-        background-position: 0 0, 15px 15px, 15px 15px, 30px 30px; background-size: 30px 30px;
-    }
-    .button_solid016 a:after {
-        position: absolute; top: 0; bottom: 0; width: 100%; height: 100%; content: ''; transition: all .3s; transform: translate3d(0,0.40rem,-1rem); border: 2px solid #000; border-radius: inherit; background: #2b7fde; box-shadow: 0 0.4rem 0 0 rgb(0 0 0 / 20%); z-index: -2;
-    }
-    .button_solid016 a i { position: absolute; right: 9px; }
-    .button_solid016 a:hover { transform: translate3d(0,0.2rem,-1rem); }
-    .button_solid016 a:hover:after { transform: translate3d(0,0.2rem,-1rem); box-shadow: 0 0.2rem 0 0 rgb(0 0 0 / 20%); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Resource Database</title>
+    <style>
+        /* === モダン・ダッシュボード風デザイン === */
+        :root {
+            --bg-color: #f4f6f9;
+            --sidebar-bg: #2c3e50;
+            --sidebar-text: #ecf0f1;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #7f8c8d;
+            --accent-color: #16a085; /* エメラルドグリーン */
+            --border-color: #e0e6ed;
+        }
 
-    /* 検索結果のスタイル */
-    #results { max-width: 600px; margin: 30px auto; }
-    .result-card { background: #fff; padding: 15px; border-left: 5px solid #2b7fde; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
-    .result-card a { color: #003067; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 10px; }
-    .result-card a:hover { text-decoration: underline; }
-</style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* === サイドバー（検索フィルター） === */
+        .sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 25px 20px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            color: #bdc3c7;
+        }
+
+        .filter-group input, 
+        .filter-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #34495e;
+            border-radius: 4px;
+            background-color: #34495e;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .filter-group input:focus, 
+        .filter-group select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .reset-btn {
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .reset-btn:hover {
+            background-color: var(--accent-color);
+            color: #fff;
+        }
+
+        /* === メインコンテンツ（検索結果） === */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-top h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+
+        .result-count {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        /* === カードグリッド === */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            gap: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+            border-color: var(--accent-color);
+        }
+
+        .card-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #e2e8f0;
+            border: 2px solid #f1f5f9;
+        }
+
+        .card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-id {
+            font-size: 0.75rem;
+            color: var(--accent-color);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .card-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+
+        .card-kana {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 0.75rem;
+        }
+
+        .meta-tag {
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+
+        /* ランク用カラー */
+        .rank-A { background-color: #fee2e2; color: #b91c1c; }
+        .rank-B { background-color: #fef3c7; color: #b45309; }
+        .rank-C { background-color: #e0e7ff; color: #4338ca; }
+        .rank-D { background-color: #f1f5f9; color: #475569; }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; padding: 15px; }
+            .main-content { padding: 15px; }
+        }
+    </style>
 </head>
 <body>
 
-<h1>H-Hデータベース</h1>
+    <!-- サイドバー：検索フィルター -->
+    <aside class="sidebar">
+        <h2><span style="margin-right: 8px;">⌕</span>Search Filters</h2>
 
-<div class="search-container">
-    <div class="form-group">
-        <label>管理番号</label>
-        <input type="text" id="search-id" placeholder="例: 2201">
-    </div>
-    <div class="form-group">
-        <label>氏名（苗字・名前）</label>
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="search-lastname" placeholder="苗字" style="flex: 1;">
-            <input type="text" id="search-firstname" placeholder="名前" style="flex: 1;">
+        <div class="filter-group">
+            <label>管理番号</label>
+            <input type="text" id="filter-id" placeholder="例: 2201">
         </div>
-    </div>
-    <div class="form-group">
-        <label>ふりがな（苗字・名前）</label>
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="search-kanam" placeholder="みょうじ" style="flex: 1;">
-            <input type="text" id="search-kanaf" placeholder="なまえ" style="flex: 1;">
+
+        <div class="filter-group">
+            <label>氏名・ふりがな</label>
+            <input type="text" id="filter-name" placeholder="例: 浅川 / ふうせい">
         </div>
-    </div>
-    <div class="form-group">
-        <label>性別</label>
-        <select id="search-gender">
-            <option value="">指定しない</option>
-            <option value="男性">男性</option>
-            <option value="女性">女性</option>
-            <option value="その他">その他</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>血液型</label>
-        <select id="search-blood">
-            <option value="">指定しない</option>
-            <option value="A">A型</option>
-            <option value="B">B型</option>
-            <option value="O">O型</option>
-            <option value="AB">AB型</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>生年月日</label>
-        <input type="date" id="search-birth">
-    </div>
 
-    <div class="button_solid016">
-        <a href="#" onclick="runSearch(); return false;">検索する<i class="fas fa-angle-right fa-position-right"></i></a>
-    </div>
-</div>
+        <div class="filter-group">
+            <label>性別</label>
+            <select id="filter-gender">
+                <option value="">すべて</option>
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select>
+        </div>
 
-<div id="results"></div>
+        <div class="filter-group">
+            <label>血液型</label>
+            <select id="filter-blood">
+                <option value="">すべて</option>
+                <option value="A">A型</option>
+                <option value="B">B型</option>
+                <option value="O">O型</option>
+                <option value="AB">AB型</option>
+            </select>
+        </div>
 
-<script>
-// ▼▼ ここに人物データを追加していきます ▼▼
-const database = [
-    { id: "2201", lastName: "山田", firstName: "太郎", kanaLast: "やまだ", kanaFirst: "たろう", gender: "男性", bloodType: "A", birth: "2000-01-01" },
-    { id: "2202", lastName: "佐藤", firstName: "花子", kanaLast: "さとう", kanaFirst: "はなこ", gender: "女性", bloodType: "B", birth: "1998-05-15" },
-    { id: "2301", lastName: "鈴木", firstName: "一郎", kanaLast: "すずき", kanaFirst: "いちろう", gender: "男性", bloodType: "O", birth: "2001-10-20" }
-];
-// ▲▲ ここまで ▲▲
+        <div class="filter-group">
+            <label>生年月日</label>
+            <input type="date" id="filter-birth">
+        </div>
 
-function runSearch() {
-    // 入力値の取得
-    const id = document.getElementById('search-id').value;
-    const lastName = document.getElementById('search-lastname').value;
-    const firstName = document.getElementById('search-firstname').value;
-    const kanaM = document.getElementById('search-kanam').value;
-    const kanaF = document.getElementById('search-kanaf').value;
-    const gender = document.getElementById('search-gender').value;
-    const blood = document.getElementById('search-blood').value;
-    const birth = document.getElementById('search-birth').value;
+        <div class="filter-group">
+            <label>ランク</label>
+            <select id="filter-rank">
+                <option value="">すべて</option>
+                <option value="A">ランク A</option>
+                <option value="B">ランク B</option>
+                <option value="C">ランク C</option>
+                <option value="D">ランク D</option>
+            </select>
+        </div>
 
-    // フィルタリング処理
-    const filtered = database.filter(person => {
-        if (id && !person.id.includes(id)) return false;
-        if (lastName && !person.lastName.includes(lastName)) return false;
-        if (firstName && !person.firstName.includes(firstName)) return false;
-        if (kanaM && !person.kanaLast.includes(kanaM)) return false;
-        if (kanaF && !person.kanaFirst.includes(kanaF)) return false;
-        if (gender && person.gender !== gender) return false;
-        if (blood && person.bloodType !== blood) return false;
-        if (birth && person.birth !== birth) return false;
-        return true;
-    });
+        <button class="reset-btn" onclick="resetFilters()">クリア</button>
+    </aside>
 
-    // 結果の表示
-    const resultsContainer = document.getElementById('results');
-    resultsContainer.innerHTML = `<h3>検索結果: ${filtered.length}件</h3>`;
+    <!-- メインコンテンツ：検索結果 -->
+    <main class="main-content">
+        <div class="header-top">
+            <h1>Human Database</h1>
+            <div class="result-count" id="result-count">0 件表示</div>
+        </div>
 
-    filtered.forEach(person => {
-        // 【重要】管理番号の最初の2桁を取得してリンク先を作成
-        const groupFolder = person.id.substring(0, 2);
-        // GitHub Pagesの仕様に合わせるなら、拡張子を付けた方が確実です
-        // 例: /22/2201.html または /22/2201/index.html
-        // 今回はご指定通り /22/2201 となるように記述しています
-        const linkUrl = `/${groupFolder}/${person.id}`;
+        <div class="grid-container" id="results-grid">
+            <!-- JSでカードがここに生成されます -->
+        </div>
+    </main>
 
-        const card = document.createElement('div');
-        card.className = 'result-card';
-        card.innerHTML = `
-            <div><strong>${person.id}</strong>：${person.lastName} ${person.firstName} (${person.kanaLast} ${person.kanaFirst})</div>
-            <div style="font-size: 12px; color: #666;">性別: ${person.gender} | 血液型: ${person.bloodType} | 生年月日: ${person.birth}</div>
-            <a href="${linkUrl}">詳細ページへ飛ぶ ＞</a>
-        `;
-        resultsContainer.appendChild(card);
-    });
-}
-</script>
+    <script>
+        // === データベース（モックデータ） ===
+        const database = [
+            {
+                id: "2201",
+                lastName: "浅川",
+                firstName: "楓惺",
+                lastNameKana: "あさかわ",
+                firstNameKana: "ふうせい",
+                gender: "男",
+                bloodType: "A",
+                birthdate: "1998-05-12",
+                rank: "A",
+                photo: "/22/2201/2201.jpg"
+            },
+            {
+                id: "2202",
+                lastName: "西園寺",
+                firstName: "麗華",
+                lastNameKana: "さいおんじ",
+                firstNameKana: "れいか",
+                gender: "女",
+                bloodType: "AB",
+                birthdate: "2000-11-23",
+                rank: "C",
+                photo: "" // 写真なし（ダミー画像に切り替わるように処理します）
+            },
+            // ↓検索のテスト用に追加の適当なデータ
+            {
+                id: "2203",
+                lastName: "田中",
+                firstName: "太郎",
+                lastNameKana: "たなか",
+                firstNameKana: "たろう",
+                gender: "男",
+                bloodType: "O",
+                birthdate: "1985-07-07",
+                rank: "B",
+                photo: ""
+            }
+        ];
 
+        // === DOM要素の取得 ===
+        const resultsGrid = document.getElementById('results-grid');
+        const countDisplay = document.getElementById('result-count');
+        const inputs = document.querySelectorAll('.sidebar input, .sidebar select');
+
+        // === イベントリスナーの登録（入力するたびに即時検索） ===
+        inputs.forEach(input => {
+            input.addEventListener('input', filterData);
+        });
+
+        // === 検索＆描画処理 ===
+        function filterData() {
+            // 検索条件の取得
+            const sId = document.getElementById('filter-id').value.trim();
+            const sName = document.getElementById('filter-name').value.trim().toLowerCase();
+            const sGender = document.getElementById('filter-gender').value;
+            const sBlood = document.getElementById('filter-blood').value;
+            const sBirth = document.getElementById('filter-birth').value;
+            const sRank = document.getElementById('filter-rank').value;
+
+            // フィルタリング
+            const filtered = database.filter(person => {
+                // ID
+                if (sId && !person.id.includes(sId)) return false;
+                
+                // 氏名・ふりがな (どれかに部分一致すればOK)
+                if (sName) {
+                    const fullName = (person.lastName + person.firstName).toLowerCase();
+                    const fullKana = (person.lastNameKana + person.firstNameKana).toLowerCase();
+                    if (!fullName.includes(sName) && !fullKana.includes(sName)) {
+                        return false;
+                    }
+                }
+                
+                // 完全一致条件
+                if (sGender && person.gender !== sGender) return false;
+                if (sBlood && person.bloodType !== sBlood) return false;
+                if (sBirth && person.birthdate !== sBirth) return false;
+                if (sRank && person.rank !== sRank) return false;
+
+                return true;
+            });
+
+            renderCards(filtered);
+        }
+
+        // === カードの描画 ===
+        function renderCards(data) {
+            resultsGrid.innerHTML = ""; // 一旦リセット
+            countDisplay.innerText = `${data.length} 件表示`;
+
+            if (data.length === 0) {
+                resultsGrid.innerHTML = `<p style="color:#7f8c8d; grid-column: 1/-1;">条件に一致するデータが見つかりません。</p>`;
+                return;
+            }
+
+            data.forEach(person => {
+                // 写真がない場合のダミー画像（今回はシンプルなアイコン風プレースホルダー）
+                const photoSrc = person.photo ? person.photo : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23cbd5e1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+
+                // カードのリンク先生成（例: 22/2201）
+                // 22の部分はIDの上2桁と仮定
+                const folder = person.id.substring(0, 2); 
+                const linkUrl = `${folder}/${person.id}`;
+
+                const card = document.createElement('a');
+                card.href = linkUrl;
+                card.target = "_blank"; // 別ウィンドウ（タブ）で開く
+                card.className = "card";
+
+                card.innerHTML = `
+                    <img src="${photoSrc}" alt="${person.lastName}" class="card-photo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%23cbd5e1\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
+                    <div class="card-info">
+                        <div class="card-id">ID: ${person.id}</div>
+                        <div class="card-name">${person.lastName} ${person.firstName}</div>
+                        <div class="card-kana">${person.lastNameKana} ${person.firstNameKana}</div>
+                        <div class="card-meta">
+                            <span class="meta-tag">${person.gender}</span>
+                            <span class="meta-tag">${person.bloodType}型</span>
+                            <span class="meta-tag">生: ${person.birthdate}</span>
+                            <span class="meta-tag rank-${person.rank}">ランク ${person.rank}</span>
+                        </div>
+                    </div>
+                `;
+                resultsGrid.appendChild(card);
+            });
+        }
+
+        // === 検索条件のリセット ===
+        function resetFilters() {
+            inputs.forEach(input => input.value = "");
+            filterData();
+        }
+
+        // 初期描画
+        filterData();
+
+    </script>
 </body>
 </html>
