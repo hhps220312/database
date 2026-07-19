@@ -3,16 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>サンプルページ</title>
-
-    <link rel="icon" href="./icon.jpg" type="image/jpeg">
-
-    <link rel="apple-touch-icon" href="./icon.jpg">
+    <title>H-Hデータベース</title>
+    <style>
+        /* --- CSS（見た目のデザイン） --- */
+        body { font-family: sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        .search-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .search-item { display: flex; flex-direction: column; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .result-card { border: 1px solid #ddd; padding: 15px; margin-top: 15px; border-radius: 4px; display: flex; gap: 15px; }
+        .photo-placeholder { width: 80px; height: 100px; background-color: #eee; display: flex; align-items: center; justify-content: center; color: #aaa; border: 1px dashed #ccc; }
+    </style>
 </head>
 <body>
 
-    <h1>ウェブページが正常に表示されました</h1>
-    <p>このページのファビコンと、iOS用のアイコンは、同じフォルダ内にある「icon.jpg」を正しく参照するように修正されました。</p>
+<div class="container">
+    <h1>H-Hデータベース</h1>
+
+    <!-- --- HTML（検索フォーム） --- -->
+    <div class="search-grid">
+        <div class="search-item"><label>管理番号</label><input type="text" id="s_id" placeholder="例: 001"></div>
+        <div class="search-item"><label>血液型</label>
+            <select id="s_blood">
+                <option value="">指定なし</option><option value="A">A型</option><option value="B">B型</option><option value="O">O型</option><option value="AB">AB型</option>
+            </select>
+        </div>
+        <div class="search-item"><label>苗字</label><input type="text" id="s_lastName"></div>
+        <div class="search-item"><label>名前</label><input type="text" id="s_firstName"></div>
+        <div class="search-item"><label>ふりがな（苗字）</label><input type="text" id="s_kanaLast"></div>
+        <div class="search-item"><label>ふりがな（名前）</label><input type="text" id="s_kanaFirst"></div>
+        <div class="search-item"><label>性別</label>
+            <select id="s_gender">
+                <option value="">指定なし</option><option value="男性">男性</option><option value="女性">女性</option><option value="その他">その他</option>
+            </select>
+        </div>
+        <div class="search-item"><label>生年月日</label><input type="date" id="s_birth"></div>
+    </div>
+    <button onclick="searchData()">検索する</button>
+
+    <!-- 結果表示エリア -->
+    <div id="resultsArea"></div>
+</div>
+
+<script>
+    // --- JavaScript（データと検索の仕組み） ---
+
+    // 1. 人物データ（ここを後から増やしていきます）
+    const database = [
+        { id: "001", lastName: "山田", firstName: "太郎", kanaLast: "やまだ", kanaFirst: "たろう", gender: "男性", bloodType: "A", birth: "1990-01-01", photo: "" },
+        { id: "002", lastName: "佐藤", firstName: "花子", kanaLast: "さとう", kanaFirst: "はなこ", gender: "女性", bloodType: "O", birth: "1995-05-15", photo: "" },
+    ];
+
+    // 2. 検索機能
+    function searchData() {
+        const s_id = document.getElementById('s_id').value;
+        const s_lastName = document.getElementById('s_lastName').value;
+        const s_firstName = document.getElementById('s_firstName').value;
+        const s_kanaLast = document.getElementById('s_kanaLast').value;
+        const s_kanaFirst = document.getElementById('s_kanaFirst').value;
+        const s_gender = document.getElementById('s_gender').value;
+        const s_blood = document.getElementById('s_blood').value;
+        const s_birth = document.getElementById('s_birth').value;
+
+        // 条件に合う人を絞り込む
+        const results = database.filter(person => {
+            return (!s_id || person.id.includes(s_id)) &&
+                   (!s_lastName || person.lastName.includes(s_lastName)) &&
+                   (!s_firstName || person.firstName.includes(s_firstName)) &&
+                   (!s_kanaLast || person.kanaLast.includes(s_kanaLast)) &&
+                   (!s_kanaFirst || person.kanaFirst.includes(s_kanaFirst)) &&
+                   (!s_gender || person.gender === s_gender) &&
+                   (!s_blood || person.bloodType === s_blood) &&
+                   (!s_birth || person.birth === s_birth);
+        });
+
+        displayResults(results);
+    }
+
+    // 3. 結果を画面に表示する機能
+    function displayResults(results) {
+        const area = document.getElementById('resultsArea');
+        area.innerHTML = `<h3>検索結果: ${results.length}件</h3>`;
+        
+        results.forEach(person => {
+            area.innerHTML += `
+                <div class="result-card">
+                    <div class="photo-placeholder">写真</div>
+                    <div>
+                        <strong>[${person.id}] ${person.lastName} ${person.firstName}</strong> (${person.kanaLast} ${person.kanaFirst})<br>
+                        性別: ${person.gender} | 血液型: ${person.bloodType}型 | 生年月日: ${person.birth}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // 最初は全員表示しておく
+    displayResults(database);
+</script>
 
 </body>
 </html>
