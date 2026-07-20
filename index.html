@@ -3,422 +3,430 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Human Resource Database</title>
+    <title>割り勘計算機</title>
+    
+    <link rel="icon" href="/favicon.jpg">
+    <link rel="apple-touch-icon" href="/favicon.jpg">
+    <meta name="msapplication-TileImage" content="/favicon.jpg">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
     <style>
-        /* === モダン・ダッシュボード風デザイン === */
+        /* === 全体のベースデザイン（ポートフォリオ統一規格） === */
         :root {
-            --bg-color: #f4f6f9;
-            --sidebar-bg: #2c3e50;
-            --sidebar-text: #ecf0f1;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #7f8c8d;
-            --accent-color: #16a085; /* エメラルドグリーン */
-            --border-color: #e0e6ed;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --border: 2px solid #000;
+            --shadow: 4px 4px 0px #000;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            min-height: 100vh;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
         }
 
-        /* === サイドバー（検索フィルター） === */
-        .sidebar {
-            width: 280px;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            padding: 25px 20px;
-            flex-shrink: 0;
+        /* ヘッダー */
+        .header {
+            padding: 20px 40px;
+            background: #fff;
+            border-bottom: var(--border);
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.05em;
+        }
+
+        /* コンテナとレイアウト */
+        .app-container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 30px;
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        @media (min-width: 768px) {
+            .app-container { flex-direction: row; }
+            .left-pane, .right-pane { flex: 1; }
         }
 
-        .sidebar h2 {
-            font-size: 1.2rem;
+        /* カード（パネル）共通スタイル */
+        .card {
+            background: var(--card);
+            border: var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+        }
+
+        .card h2 {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 3px solid #000;
+            display: inline-block;
+            padding-bottom: 5px;
             letter-spacing: 1px;
-            border-bottom: 1px solid #34495e;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-            color: var(--accent-color);
         }
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+        /* フォーム部品 */
+        .input-group { margin-bottom: 20px; }
+        .input-group label {
+            display: block;
+            font-weight: 800;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
-
-        .filter-group label {
-            font-size: 0.85rem;
-            color: #bdc3c7;
-        }
-
-        .filter-group input, 
-        .filter-group select {
+        input[type="number"], input[type="text"], select {
             width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #34495e;
+            padding: 12px;
+            border: var(--border);
             border-radius: 4px;
-            background-color: #34495e;
-            color: #fff;
-            font-size: 0.9rem;
-            outline: none;
+            font-size: 16px;
+            font-weight: bold;
+            box-sizing: border-box;
+            background: #fafafa;
+            color: var(--text);
             transition: 0.2s;
         }
-
-        .filter-group input:focus, 
-        .filter-group select:focus {
-            border-color: var(--accent-color);
+        input:focus, select:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 2px 2px 0px #000;
         }
 
-        .reset-btn {
-            background-color: transparent;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: 0.3s;
+        /* メンバー名前入力エリア（サブカード風） */
+        .names-container {
+            background: #f1f2f6;
+            padding: 15px;
+            border: 2px dashed #000;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
 
-        .reset-btn:hover {
-            background-color: var(--accent-color);
-            color: #fff;
+        /* 右側：初期状態 */
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 60px 0;
+            font-weight: 800;
+        }
+        .empty-state i {
+            font-size: 50px;
+            color: #ddd;
+            margin-bottom: 15px;
         }
 
-        /* === メインコンテンツ（検索結果） === */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
+        /* 結果リスト */
+        .result-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
         }
-
-        .header-top {
+        .result-list li {
+            padding: 15px 10px;
+            border-bottom: 2px dashed #ccc;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+        }
+        .result-list li:last-child { border-bottom: none; }
+        .result-amount { color: #e53935; font-size: 24px; }
+
+        /* 余りアラート・オプション */
+        .remainder-alert {
+            background: #ffeaa7;
+            border: var(--border);
+            color: #d35400;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 800;
+            text-align: center;
+            margin: 25px 0;
+            font-size: 18px;
+            box-shadow: 2px 2px 0px #000;
         }
 
-        .header-top h1 {
-            font-size: 1.8rem;
-            font-weight: 300;
-        }
-
-        .result-count {
-            font-size: 1rem;
-            color: var(--text-muted);
-        }
-
-        /* === カードグリッド === */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
+        .remainder-options {
+            background: #fafafa;
+            border: var(--border);
             border-radius: 8px;
             padding: 20px;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            gap: 15px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            cursor: pointer;
         }
 
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
-            border-color: var(--accent-color);
-        }
-
-        .card-photo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            background-color: #e2e8f0;
-            border: 2px solid #f1f5f9;
-        }
-
-        .card-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .card-id {
-            font-size: 0.75rem;
-            color: var(--accent-color);
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-
-        .card-name {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-top: 2px;
-            margin-bottom: 2px;
-        }
-
-        .card-kana {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .card-meta {
+        .checkbox-group {
             display: flex;
             flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .checkbox-group label {
+            background: #fff;
+            border: var(--border);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
             gap: 8px;
-            font-size: 0.75rem;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px; height: 18px; accent-color: #000;
         }
 
-        .meta-tag {
-            background-color: #f1f5f9;
-            color: #475569;
-            padding: 3px 8px;
-            border-radius: 12px;
+        /* === 指定のボタンデザイン === */
+        .button_solid016 { margin: 20px 0; }
+        .button_solid016 a {
+            background: #6bb6ff; border-radius: 5px; position: relative; display: flex;
+            justify-content: center; align-items: center; margin: 0 auto;
+            max-width: 100%; padding: 12px 25px; color: #003067; transition: 0.3s;
+            font-weight: 800; border: 2px solid #000; text-decoration: none; z-index: 1; cursor: pointer;
         }
-
-        /* ランク用カラー */
-        .rank-A { background-color: #fee2e2; color: #b91c1c; }
-        .rank-B { background-color: #fef3c7; color: #b45309; }
-        .rank-C { background-color: #e0e7ff; color: #4338ca; }
-        .rank-D { background-color: #f1f5f9; color: #475569; }
-
-        /* レスポンシブ */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; padding: 15px; }
-            .main-content { padding: 15px; }
+        .button_solid016 a:before {
+            content: ""; width: 100%; height: 100%; position: absolute; z-index: -1;
+            border: 2px solid #000; border-radius: 5px; background: #e1f3ff;
+            background-image: linear-gradient(45deg, #c8e4ff 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e4ff 0), linear-gradient(45deg, #c8e4ff 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e4ff 0);
+            background-position: 0 0, 15px 15px, 15px 15px, 30px 30px; background-size: 30px 30px;
         }
+        .button_solid016 a:after {
+            position: absolute; top: 0; bottom: 0; left: -2px; width: calc(100% + 4px); height: 100%; content: '';
+            transition: all .3s; transform: translate3d(0, 0.40rem, -1rem);
+            border: 2px solid #000; border-radius: inherit; background: #2b7fde;
+            box-shadow: 0 0.4rem 0 0 rgb(0 0 0 / 20%); z-index: -2;
+        }
+        .button_solid016 a i { position: absolute; right: 15px; }
+        .button_solid016 a .fa-calculator { right: auto; left: 15px; }
+        .button_solid016 a:hover { transform: translate3d(0, 0.2rem, -1rem); }
+        .button_solid016 a:hover:after { transform: translate3d(0, 0.2rem, -1rem); box-shadow: 0 0.2rem 0 0 rgb(0 0 0 / 20%); }
+
+        /* ガチャ用ボタン（オレンジ） */
+        .btn-gacha a { background: #ffb347; color: #5a3200; }
+        .btn-gacha a:before { background: #fff0db; background-image: linear-gradient(45deg, #ffd8a6 25%, transparent 0), linear-gradient(45deg, transparent 75%, #ffd8a6 0), linear-gradient(45deg, #ffd8a6 25%, transparent 0), linear-gradient(45deg, transparent 75%, #ffd8a6 0); }
+        .btn-gacha a:after { background: #f39c12; }
+
+        /* 決定用ボタン（グリーン） */
+        .btn-success a { background: #81c784; color: #003300; }
+        .btn-success a:before { background: #e8f5e9; background-image: linear-gradient(45deg, #c8e6c9 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e6c9 0), linear-gradient(45deg, #c8e6c9 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e6c9 0); }
+        .btn-success a:after { background: #4caf50; }
+
+        hr.divider { border: 0; border-bottom: 2px dashed #000; margin: 25px 0; }
     </style>
 </head>
 <body>
 
-    <!-- サイドバー：検索フィルター -->
-    <aside class="sidebar">
-        <h2><span style="margin-right: 8px;">⌕</span>Search Filters</h2>
+<header class="header">割り勘計算機</header>
 
-        <div class="filter-group">
-            <label>管理番号</label>
-            <input type="text" id="filter-id" placeholder="例: 2201">
+<div class="app-container">
+    
+    <!-- ▼ 左側：入力セクション ▼ -->
+    <div class="left-pane card">
+        <h2>Input Details</h2>
+        
+        <div class="input-group">
+            <label for="total-amount">合計金額（円）</label>
+            <input type="number" id="total-amount" placeholder="例: 15800" min="1">
         </div>
 
-        <div class="filter-group">
-            <label>氏名・ふりがな</label>
-            <input type="text" id="filter-name" placeholder="例: 浅川 / ふうせい">
+        <div class="input-group">
+            <label for="num-people">人数（人）</label>
+            <input type="number" id="num-people" placeholder="例: 4" min="1" oninput="generateNameInputs()">
         </div>
 
-        <div class="filter-group">
-            <label>性別</label>
-            <select id="filter-gender">
-                <option value="">すべて</option>
-                <option value="男">男</option>
-                <option value="女">女</option>
-            </select>
+        <div class="names-container" id="names-container" style="display:none;">
+            <p style="margin-top:0; font-weight:800; font-size:14px; text-align:center;">メンバーの名前（任意）</p>
+            <div id="names-list"></div>
         </div>
 
-        <div class="filter-group">
-            <label>血液型</label>
-            <select id="filter-blood">
-                <option value="">すべて</option>
-                <option value="A">A型</option>
-                <option value="B">B型</option>
-                <option value="O">O型</option>
-                <option value="AB">AB型</option>
-            </select>
+        <div class="button_solid016">
+            <a onclick="calculateBase()"><i class="fas fa-calculator"></i>まずは均等に計算<i class="fas fa-angle-right"></i></a>
+        </div>
+    </div>
+
+    <!-- ▼ 右側：結果・余り処理セクション ▼ -->
+    <div class="right-pane card">
+        <h2>Result</h2>
+        
+        <!-- 初期状態 -->
+        <div class="empty-state" id="empty-state">
+            <i class="fas fa-receipt"></i><br>
+            左で金額と人数を入力して<br>計算ボタンを押してください
         </div>
 
-        <div class="filter-group">
-            <label>生年月日</label>
-            <input type="date" id="filter-birth">
+        <div class="result-area" id="result-area" style="display: none;">
+            <ul class="result-list" id="result-list">
+                <!-- 結果リスト -->
+            </ul>
+
+            <!-- 余り処理エリア -->
+            <div id="remainder-section" style="display: none;">
+                <div class="remainder-alert" id="remainder-text"></div>
+
+                <div class="remainder-options">
+                    
+                    <!-- ガチャ機能 -->
+                    <div style="text-align:center; font-weight:bold; font-size:14px;">＼ 運任せ！ ／</div>
+                    <div class="button_solid016 btn-gacha">
+                        <a onclick="executeGacha()">ガチャで1人が払う<i class="fas fa-random"></i></a>
+                    </div>
+                    
+                    <hr class="divider">
+
+                    <!-- 指定メンバーで割る機能 -->
+                    <div style="text-align:center; font-weight:bold; font-size:14px; margin-bottom:15px;">＼ 特定の人で分ける ／</div>
+                    <div class="checkbox-group" id="remainder-checkboxes">
+                        <!-- チェックボックス -->
+                    </div>
+
+                    <div class="input-group">
+                        <label for="final-boss">さらに余った時の最後の1人：</label>
+                        <select id="final-boss"></select>
+                    </div>
+
+                    <div class="button_solid016 btn-success" style="margin-top:20px;">
+                        <a onclick="calculateRemainder()">余りを指定通りに配分<i class="fas fa-check"></i></a>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <div class="filter-group">
-            <label>ランク</label>
-            <select id="filter-rank">
-                <option value="">すべて</option>
-                <option value="A">ランク A</option>
-                <option value="B">ランク B</option>
-                <option value="C">ランク C</option>
-                <option value="D">ランク D</option>
-            </select>
-        </div>
+</div>
 
-        <button class="reset-btn" onclick="resetFilters()">クリア</button>
-    </aside>
+<script>
+    let participants = []; 
+    let currentRemainder = 0;
 
-    <!-- メインコンテンツ：検索結果 -->
-    <main class="main-content">
-        <div class="header-top">
-            <h1>Human Database</h1>
-            <div class="result-count" id="result-count">0 件表示</div>
-        </div>
-
-        <div class="grid-container" id="results-grid">
-            <!-- JSでカードがここに生成されます -->
-        </div>
-    </main>
-
-    <script>
-        // === データベース（モックデータ） ===
-        const database = [
-            {
-                id: "2201",
-                lastName: "浅川",
-                firstName: "楓惺",
-                lastNameKana: "あさかわ",
-                firstNameKana: "ふうせい",
-                gender: "男",
-                bloodType: "A",
-                birthdate: "1998-05-12",
-                rank: "A",
-                photo: "/22/2201/2201.jpg"
-            },
-            {
-                id: "2202",
-                lastName: "西園寺",
-                firstName: "麗華",
-                lastNameKana: "さいおんじ",
-                firstNameKana: "れいか",
-                gender: "女",
-                bloodType: "AB",
-                birthdate: "2000-11-23",
-                rank: "C",
-                photo: "" // 写真なし（ダミー画像に切り替わるように処理します）
-            },
-            // ↓検索のテスト用に追加の適当なデータ
-            {
-                id: "2203",
-                lastName: "田中",
-                firstName: "太郎",
-                lastNameKana: "たなか",
-                firstNameKana: "たろう",
-                gender: "男",
-                bloodType: "O",
-                birthdate: "1985-07-07",
-                rank: "B",
-                photo: ""
+    function generateNameInputs() {
+        const num = parseInt(document.getElementById('num-people').value) || 0;
+        const container = document.getElementById('names-container');
+        const list = document.getElementById('names-list');
+        
+        if (num > 0) {
+            container.style.display = 'block';
+            let html = '';
+            for (let i = 1; i <= num; i++) {
+                html += `<div class="input-group" style="margin-bottom:10px;">
+                            <input type="text" id="name-${i}" placeholder="${i}人目の名前" value="メンバー${i}">
+                         </div>`;
             }
-        ];
+            list.innerHTML = html;
+        } else {
+            container.style.display = 'none';
+        }
+        
+        document.getElementById('result-area').style.display = 'none';
+        document.getElementById('empty-state').style.display = 'block';
+    }
 
-        // === DOM要素の取得 ===
-        const resultsGrid = document.getElementById('results-grid');
-        const countDisplay = document.getElementById('result-count');
-        const inputs = document.querySelectorAll('.sidebar input, .sidebar select');
+    function calculateBase() {
+        const total = parseInt(document.getElementById('total-amount').value) || 0;
+        const num = parseInt(document.getElementById('num-people').value) || 0;
 
-        // === イベントリスナーの登録（入力するたびに即時検索） ===
-        inputs.forEach(input => {
-            input.addEventListener('input', filterData);
+        if (total <= 0 || num <= 0) {
+            alert("金額と人数を正しく入力してください。");
+            return;
+        }
+
+        participants = [];
+        for (let i = 1; i <= num; i++) {
+            let nameVal = document.getElementById(`name-${i}`).value || `メンバー${i}`;
+            participants.push({ id: i, name: nameVal, amount: 0 });
+        }
+
+        const baseAmount = Math.floor(total / num);
+        currentRemainder = total % num;
+
+        participants.forEach(p => p.amount = baseAmount);
+
+        updateUI();
+        
+        document.getElementById('empty-state').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+    }
+
+    function updateUI() {
+        const resultList = document.getElementById('result-list');
+        resultList.innerHTML = '';
+        participants.forEach(p => {
+            resultList.innerHTML += `<li><span>${p.name}</span> <span class="result-amount">${p.amount.toLocaleString()} 円</span></li>`;
         });
 
-        // === 検索＆描画処理 ===
-        function filterData() {
-            // 検索条件の取得
-            const sId = document.getElementById('filter-id').value.trim();
-            const sName = document.getElementById('filter-name').value.trim().toLowerCase();
-            const sGender = document.getElementById('filter-gender').value;
-            const sBlood = document.getElementById('filter-blood').value;
-            const sBirth = document.getElementById('filter-birth').value;
-            const sRank = document.getElementById('filter-rank').value;
+        const remainderSection = document.getElementById('remainder-section');
+        if (currentRemainder > 0) {
+            document.getElementById('remainder-text').innerText = `現在、余りが ${currentRemainder} 円 あります！`;
+            remainderSection.style.display = 'block';
 
-            // フィルタリング
-            const filtered = database.filter(person => {
-                // ID
-                if (sId && !person.id.includes(sId)) return false;
-                
-                // 氏名・ふりがな (どれかに部分一致すればOK)
-                if (sName) {
-                    const fullName = (person.lastName + person.firstName).toLowerCase();
-                    const fullKana = (person.lastNameKana + person.firstNameKana).toLowerCase();
-                    if (!fullName.includes(sName) && !fullKana.includes(sName)) {
-                        return false;
-                    }
-                }
-                
-                // 完全一致条件
-                if (sGender && person.gender !== sGender) return false;
-                if (sBlood && person.bloodType !== sBlood) return false;
-                if (sBirth && person.birthdate !== sBirth) return false;
-                if (sRank && person.rank !== sRank) return false;
-
-                return true;
+            const cbContainer = document.getElementById('remainder-checkboxes');
+            cbContainer.innerHTML = '';
+            participants.forEach(p => {
+                cbContainer.innerHTML += `<label><input type="checkbox" class="rem-target" value="${p.id}"> ${p.name}</label>`;
             });
 
-            renderCards(filtered);
-        }
-
-        // === カードの描画 ===
-        function renderCards(data) {
-            resultsGrid.innerHTML = ""; // 一旦リセット
-            countDisplay.innerText = `${data.length} 件表示`;
-
-            if (data.length === 0) {
-                resultsGrid.innerHTML = `<p style="color:#7f8c8d; grid-column: 1/-1;">条件に一致するデータが見つかりません。</p>`;
-                return;
-            }
-
-            data.forEach(person => {
-                // 写真がない場合のダミー画像（今回はシンプルなアイコン風プレースホルダー）
-                const photoSrc = person.photo ? person.photo : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23cbd5e1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-
-                // カードのリンク先生成（例: 22/2201）
-                // 22の部分はIDの上2桁と仮定
-                const folder = person.id.substring(0, 2); 
-                const linkUrl = `${folder}/${person.id}`;
-
-                const card = document.createElement('a');
-                card.href = linkUrl;
-                card.target = "_blank"; // 別ウィンドウ（タブ）で開く
-                card.className = "card";
-
-                card.innerHTML = `
-                    <img src="${photoSrc}" alt="${person.lastName}" class="card-photo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%23cbd5e1\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
-                    <div class="card-info">
-                        <div class="card-id">ID: ${person.id}</div>
-                        <div class="card-name">${person.lastName} ${person.firstName}</div>
-                        <div class="card-kana">${person.lastNameKana} ${person.firstNameKana}</div>
-                        <div class="card-meta">
-                            <span class="meta-tag">${person.gender}</span>
-                            <span class="meta-tag">${person.bloodType}型</span>
-                            <span class="meta-tag">生: ${person.birthdate}</span>
-                            <span class="meta-tag rank-${person.rank}">ランク ${person.rank}</span>
-                        </div>
-                    </div>
-                `;
-                resultsGrid.appendChild(card);
+            const bossSelect = document.getElementById('final-boss');
+            bossSelect.innerHTML = '';
+            participants.forEach(p => {
+                bossSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
             });
+        } else {
+            remainderSection.style.display = 'none';
+        }
+    }
+
+    function executeGacha() {
+        if(currentRemainder <= 0) return;
+        
+        const winnerIndex = Math.floor(Math.random() * participants.length);
+        const winner = participants[winnerIndex];
+        
+        winner.amount += currentRemainder;
+        alert(`🎉 ガチャ結果 🎉\n\n余りの ${currentRemainder}円 は\n【 ${winner.name} 】さんが払います！`);
+        
+        currentRemainder = 0;
+        updateUI();
+    }
+
+    function calculateRemainder() {
+        if(currentRemainder <= 0) return;
+
+        const checkboxes = document.querySelectorAll('.rem-target:checked');
+        if (checkboxes.length === 0) {
+            alert("余りを分担する人を1人以上選択してください！");
+            return;
         }
 
-        // === 検索条件のリセット ===
-        function resetFilters() {
-            inputs.forEach(input => input.value = "");
-            filterData();
+        const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        const splitBase = Math.floor(currentRemainder / selectedIds.length);
+        const splitRem = currentRemainder % selectedIds.length;
+
+        selectedIds.forEach(id => {
+            let p = participants.find(p => p.id === id);
+            p.amount += splitBase;
+        });
+
+        let message = `選択したメンバーに余りを配分しました。`;
+
+        if (splitRem > 0) {
+            const bossId = parseInt(document.getElementById('final-boss').value);
+            let boss = participants.find(p => p.id === bossId);
+            boss.amount += splitRem;
+            message += `\n\nさらに割り切れなかった ${splitRem}円 は設定通り 【 ${boss.name} 】さんが払います！`;
         }
 
-        // 初期描画
-        filterData();
+        alert(message);
+        
+        currentRemainder = 0;
+        updateUI();
+    }
+</script>
 
-    </script>
 </body>
 </html>
