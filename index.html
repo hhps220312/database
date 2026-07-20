@@ -1,450 +1,120 @@
-<!DOCTYPE html>
+import os
+from weasyprint import HTML
+
+html_content = """<!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>割り勘計算機</title>
-    
-    <!-- ファビコン・iOS・Android用アイコン設定 -->
-    <link rel="icon" href="/favicon.jpg">
-    <link rel="apple-touch-icon" href="/favicon.jpg">
-    <meta name="msapplication-TileImage" content="/favicon.jpg">
-    
-    <!-- FontAwesome (ボタンのアイコン用) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-    <style>
-        /* === ベースデザイン（テキストツールと統一） === */
-        :root { 
-            --bg: #f8f9fa; 
-            --card: #ffffff; 
-            --text: #2d3436; 
-            --accent: #6bb6ff; 
-        }
-        
-        body { 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            padding: 0; 
-        }
-
-        /* ヘッダー */
-        .header { 
-            padding: 20px 40px; 
-            background: #fff; 
-            border-bottom: 2px solid #000; 
-            font-weight: 800; 
-            font-size: 1.5rem; 
-            letter-spacing: -0.05em; 
-        }
-
-        /* コンテナ */
-        .app-container { 
-            display: flex; 
-            gap: 30px; 
-            max-width: 1000px; 
-            margin: 30px auto; 
-            padding: 0 20px; 
-        }
-
-        /* 左右分割 */
-        .left-panel, .right-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* カードデザイン */
-        .card { 
-            background: var(--card); 
-            border: 2px solid #000; 
-            padding: 25px; 
-            border-radius: 8px; 
-            box-shadow: 4px 4px 0px #000; 
-        }
-
-        h3 { 
-            font-size: 16px; 
-            margin-top: 0;
-            margin-bottom: 20px; 
-            text-transform: uppercase; 
-            border-bottom: 2px solid #000; 
-            display: inline-block; 
-            padding-bottom: 3px;
-        }
-
-        /* 入力フォームエリア */
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            font-weight: 800;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        input[type="number"], input[type="text"], select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #000;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-            background: #fff;
-            color: var(--text);
-            font-family: inherit;
-        }
-        
-        input:focus, select:focus {
-            outline: none;
-            background: #f0f8ff;
-        }
-
-        .names-container {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px dashed #ccc;
-        }
-
-        /* 右側：初期状態（プレースホルダー） */
-        .empty-state {
-            text-align: center;
-            color: #999;
-            padding: 60px 20px;
-            font-weight: bold;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-        }
-        .empty-state i {
-            font-size: 48px;
-            color: #ddd;
-            margin-bottom: 15px;
-        }
-
-        /* 結果表示エリア */
-        .result-area {
-            display: none;
-        }
-
-        .result-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            font-size: 18px;
-            font-weight: 800;
-        }
-        .result-list li {
-            padding: 12px 5px;
-            border-bottom: 2px dotted #ccc;
-            display: flex;
-            justify-content: space-between;
-        }
-        .result-list li:last-child {
-            border-bottom: none;
-        }
-
-        /* 余りアラート */
-        .remainder-alert {
-            background: #ffeb3b; /* ハイライトと同じ黄色 */
-            border: 2px solid #000;
-            color: #000;
-            padding: 12px;
-            border-radius: 5px;
-            font-weight: 800;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .checkbox-group {
-            margin: 15px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .checkbox-group label {
-            display: inline-flex;
-            align-items: center;
-            font-weight: bold;
-            cursor: pointer;
-            background: #f8f9fa;
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .checkbox-group input {
-            margin-right: 8px;
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        /* === ボタンデザイン（統一版） === */
-        .button_solid016 { margin-top: 20px; }
-        .button_solid016 a {
-            background: #6bb6ff; border-radius: 5px; position: relative; display: flex;
-            justify-content: center; align-items: center; margin: 0 auto; width: 100%;
-            box-sizing: border-box;
-            padding: 12px 20px; color: #003067; transition: 0.3s; font-weight: 800;
-            border: 2px solid #000; text-decoration: none; z-index: 1; cursor: pointer;
-        }
-        .button_solid016 a:before {
-            content: ""; width: 100%; height: 100%; position: absolute; z-index: -1;
-            top: 0; left: 0;
-            border: 2px solid #000; border-radius: 5px; background: #e1f3ff;
-            background-image: linear-gradient(45deg, #c8e4ff 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e4ff 0);
-            background-size: 30px 30px;
-        }
-        .button_solid016 a:after {
-            position: absolute; top: 0; bottom: 0; left: -2px; width: calc(100% + 4px); height: 100%; content: '';
-            transition: all .3s; transform: translate3d(0, 0.40rem, -1rem);
-            border: 2px solid #000; border-radius: 5px; background: #2b7fde;
-            box-shadow: 0 0.4rem 0 0 rgb(0 0 0 / 20%); z-index: -2;
-        }
-        .button_solid016 a:hover { transform: translate3d(0, 0.2rem, -1rem); }
-        .button_solid016 a:hover:after { transform: translate3d(0, 0.2rem, -1rem); box-shadow: 0 0.2rem 0 0 rgb(0 0 0 / 20%); }
-        .button_solid016 a i { position: absolute; right: 15px; }
-        
-        /* ガチャ・決定ボタン用バリエーション */
-        .btn-orange a { background: #ffb347; color: #5a3000; }
-        .btn-orange a:before { background: #ffe6c4; background-image: linear-gradient(45deg, #ffcca3 25%, transparent 0), linear-gradient(45deg, transparent 75%, #ffcca3 0); }
-        .btn-orange a:after { background: #e08b16; }
-
-        .btn-green a { background: #81c784; color: #003300; }
-        .btn-green a:before { background: #c8e6c9; background-image: linear-gradient(45deg, #a5d6a7 25%, transparent 0), linear-gradient(45deg, transparent 75%, #a5d6a7 0); }
-        .btn-green a:after { background: #529e55; }
-
-        /* レスポンシブ */
-        @media (max-width: 768px) {
-            .app-container { flex-direction: column; }
-        }
-    </style>
+<meta charset="UTF-8">
+<style>
+@page {
+    size: A4;
+    margin: 20mm 20mm;
+    background-color: #ffffff;
+}
+body {
+    font-family: "Noto Serif CJK JP", "MS Mincho", "Hiragino Mincho Pro", serif;
+    font-size: 10.5pt;
+    line-height: 1.7;
+    color: #333333;
+}
+h1 {
+    font-size: 16pt;
+    text-align: center;
+    font-family: "Noto Sans CJK JP", "MS Gothic", "Hiragino Kaku Gothic Pro", sans-serif;
+    margin-bottom: 25px;
+    color: #000000;
+}
+.header-right {
+    text-align: right;
+    margin-bottom: 20px;
+    font-family: "Noto Sans CJK JP", "MS Gothic", "Hiragino Kaku Gothic Pro", sans-serif;
+    font-size: 10pt;
+}
+h2 {
+    font-size: 11.5pt;
+    font-family: "Noto Sans CJK JP", "MS Gothic", "Hiragino Kaku Gothic Pro", sans-serif;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    page-break-after: avoid;
+    color: #000000;
+}
+h3 {
+    font-size: 10.5pt;
+    font-family: "Noto Sans CJK JP", "MS Gothic", "Hiragino Kaku Gothic Pro", sans-serif;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    page-break-after: avoid;
+    color: #000000;
+}
+p {
+    margin: 0 0 10px 0;
+    text-align: justify;
+}
+.indent {
+    padding-left: 1em;
+}
+</style>
 </head>
 <body>
+<div class="header-right">2026年7月20日<br>図書委員会報告記録</div>
+<h1>図書委員に関する問題行動報告と分析</h1>
 
-<header class="header">割り勘計算機</header>
+<h2>①カウンター内でのスマートフォンの常習的使用【影響度：高】</h2>
+<h3>【事実関係】</h3>
+<p>小泉および堀江の両名は、カウンター内での業務中にスマートフォンを常習的に操作していた。校則においてスマートフォンの使用は禁止されており、始業式等の集会でも定期的に指導が行われている。しかし、図書室事務の吉田氏からの注意がない、あるいは注意されても脅威に感じていないことを理由に、両名は当該行為を継続していた。なお、本件は一般利用の生徒からの通報により発覚した。</p>
+<h3>【影響分析】</h3>
+<p>図書委員がカウンター内でスマートフォンを使用する行為は、一般利用者に「図書室ではスマートフォンを操作してもよい」という誤った認識を与える恐れがある。本来、図書委員はルール違反者に対して注意・指導を行う立場にあるが、自身が規則を破っている状態では示しがつかず、「図書委員も使っていた」と反発を招き、指導に従わせることが困難となる。結果として、図書委員全体の信頼を大きく失墜させる危険性を孕んでいた。</p>
 
-<div class="app-container">
-    
-    <!-- ▼ 左側：入力セクション ▼ -->
-    <div class="left-panel">
-        <div class="card">
-            <h3>Setting</h3>
-            
-            <div class="input-group">
-                <label for="total-amount">合計金額（円）</label>
-                <input type="number" id="total-amount" placeholder="例: 15800" min="1">
-            </div>
+<h2>②図書室関連施設での飲食行為【影響度：中〜高】</h2>
+<h3>【事実関係】</h3>
+<p>昼休みの時間帯において、堀江は吉田氏から許可を得た上で、図書室に隣接する研究室で弁当を摂食していた。しかし、食事中に図書室側へ何度か出入りし、その様子が一般利用者に目撃された。堀江自身も図書館（図書室）における飲食禁止のルールは熟知していたはずであるが、吉田氏が「NO」と言わないことを見越して許可を求めており、その態度は悪質であると言わざるを得ない。</p>
+<h3>【影響分析】</h3>
+<p>本件の該当者は堀江のみであり（通報した生徒も他の委員の飲食は確認していないと証言）、図書委員全体への信頼失墜には直結していないものの、一般生徒に対し「図書室周辺で飲食が可能である」という誤認識を与えかねない行為である。今後、図書室内で菓子類などを食べる生徒を注意する際、①の事案と同様に指導の説得力を失い、利用者の統制に重大な支障をきたす可能性が大いにあった。</p>
 
-            <div class="input-group">
-                <label for="num-people">人数（人）</label>
-                <input type="number" id="num-people" placeholder="例: 4" min="1" oninput="generateNameInputs()">
-            </div>
+<h2>③私物（趣味の物品）の不適切な持ち込みと配置【影響度：中】</h2>
+<h3>【事実関係】</h3>
+<p>川瀬は、「図書室の装飾のため」と称して、自身が趣味とするアニメ関連のグッズを多数図書室内に配置している。さらに、クラスで配布されたタオルやメガホンといった、図書室の環境に不釣り合いな私物までも室内に放置している状態である。</p>
+<h3>【影響分析】</h3>
+<p>図書室は公共の学習・読書空間であり、個人の私室ではない。特定のアニメグッズ等の過度な配置は、そうした分野に関心のない一般利用者が図書室へ入りにくくなる心理的障壁を生む恐れがある。公共の場としての適切性や、万人が利用しやすい環境づくりという観点から不適切である。</p>
 
-            <div class="names-container" id="names-container" style="display:none;">
-                <label style="font-weight:800; font-size:14px; display:block; margin-bottom:10px;">メンバーの名前（任意）</label>
-                <div id="names-list"></div>
-            </div>
+<h2>④委員会業務（シフト・定例会）の常習的放棄【影響度：中】</h2>
+<h3>【事実関係】</h3>
+<p>小林は、図書委員の本来の業務であるカウンター当番のシフトや、定例会に対して常習的に無断欠席（サボり）を繰り返している。</p>
+<h3>【影響分析】</h3>
+<p>他の委員が多忙な中で責任を果たしているのに対し、特定の委員が常習的に業務を放棄する状況は、「真面目に取り組んでいる者が損をする状態」を生み出している。これは図書委員会全体の士気やモチベーションを著しく低下させる主要な要因となる。</p>
 
-            <div class="button_solid016">
-                <a onclick="calculateBase()">均等に割る<i class="fas fa-calculator"></i></a>
-            </div>
-        </div>
-    </div>
+<h2>⑤定例会における不適切な態度【影響度：低〜中】</h2>
+<h3>【事実関係】</h3>
+<p>定例会の進行中、小泉、堀江、長澤の3名は、話を聞かずに私語を交わしたり、iPadを用いて会議と無関係な操作を行ったりしている。</p>
+<h3>【影響分析】</h3>
+<p>会議の進行側（司会者等）に退屈させない工夫が求められる余地があるとはいえ、業務の場において上記のような態度は許容されるものではない。司会者や、真摯に委員会活動に取り組んでいる他の委員に対して不快感を与え、委員内の協力体制や人間関係に悪影響を及ぼす行為である。</p>
 
-    <!-- ▼ 右側：結果・余り処理セクション ▼ -->
-    <div class="right-panel">
-        
-        <!-- 初期状態のプレースホルダー -->
-        <div class="card empty-state" id="empty-state">
-            <i class="fas fa-receipt"></i>
-            左で条件を入力して<br>計算してください
-        </div>
+<h2>⑥カウンターへの不必要・不適切な常駐と職務怠慢【影響度：高】</h2>
+<h3>【事実関係】</h3>
+<p>川瀬、小泉、堀江の3名は、自身のシフト外であっても常時カウンター内に滞在している。カウンター内にいること自体は本来問題ではないが、実態としては前述のスマートフォン操作、飲食、私物の配置など、本来の業務（貸出・返却対応、ディスプレイ装飾等）とは無関係な行為に終始している。さらに、私語等の影響で一般生徒をカウンター内に招き入れ、それを注意するどころか共に談笑するなど、カウンター内への立ち入りを容認するような雰囲気を作り出している。</p>
+<h3>【影響分析】</h3>
+<p>業務を行わずにカウンター内で遊興にふける行為は言語道断である。また、川瀬のように一定の業務をこなしている側面があっても、この3名が常駐していることで、小林等の意欲の低い委員に対して「あいつらがいるからカウンター当番に行かなくてもよい」というサボりの口実を与えてしまっている。さらに、新任の1年生委員に対して「あの人たちがやっているから自分が介入しづらい」という心理的圧迫を与え、彼らが経験を積む機会を不当に奪っている。</p>
 
-        <!-- 結果表示 -->
-        <div class="result-area" id="result-area">
-            <div class="card">
-                <h3>Result</h3>
-                <ul class="result-list" id="result-list">
-                    <!-- 結果がここに表示されます -->
-                </ul>
-            </div>
-
-            <!-- 余りがある場合のみ表示されるエリア -->
-            <div id="remainder-section" style="display: none;" class="card">
-                <div class="remainder-alert" id="remainder-text"></div>
-
-                <div class="section-title">🌟 余りはどうする？ 🌟</div>
-                
-                <!-- ガチャ機能 -->
-                <div class="button_solid016 btn-orange">
-                    <a onclick="executeGacha()">ガチャで1人が払う<i class="fas fa-random"></i></a>
-                </div>
-                
-                <hr style="border: 1px dashed #ccc; margin: 25px 0;">
-
-                <!-- 指定メンバーで割る機能 -->
-                <div class="section-title">特定の人で分ける</div>
-                <div class="checkbox-group" id="remainder-checkboxes">
-                    <!-- チェックボックスが生成されます -->
-                </div>
-
-                <div class="input-group">
-                    <label for="final-boss" style="font-size:12px;">さらに余った時の最後の1人：</label>
-                    <select id="final-boss">
-                        <!-- セレクトボックスが生成されます -->
-                    </select>
-                </div>
-                <div class="button_solid016 btn-green" style="margin-top:10px;">
-                    <a onclick="calculateRemainder()">指定通りに配分する<i class="fas fa-check"></i></a>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<script>
-    let participants = []; 
-    let currentRemainder = 0;
-
-    function generateNameInputs() {
-        const num = parseInt(document.getElementById('num-people').value) || 0;
-        const container = document.getElementById('names-container');
-        const list = document.getElementById('names-list');
-        
-        if (num > 0) {
-            container.style.display = 'block';
-            let html = '';
-            for (let i = 1; i <= num; i++) {
-                html += `<div class="input-group">
-                            <input type="text" id="name-${i}" placeholder="${i}人目の名前" value="メンバー${i}">
-                         </div>`;
-            }
-            list.innerHTML = html;
-        } else {
-            container.style.display = 'none';
-        }
-        
-        document.getElementById('result-area').style.display = 'none';
-        document.getElementById('empty-state').style.display = 'flex';
-    }
-
-    function calculateBase() {
-        const total = parseInt(document.getElementById('total-amount').value) || 0;
-        const num = parseInt(document.getElementById('num-people').value) || 0;
-
-        if (total <= 0 || num <= 0) {
-            alert("金額と人数を正しく入力してください。");
-            return;
-        }
-
-        participants = [];
-        for (let i = 1; i <= num; i++) {
-            let nameVal = document.getElementById(`name-${i}`).value || `メンバー${i}`;
-            participants.push({ id: i, name: nameVal, amount: 0 });
-        }
-
-        const baseAmount = Math.floor(total / num);
-        currentRemainder = total % num;
-
-        participants.forEach(p => p.amount = baseAmount);
-
-        updateUI();
-        
-        document.getElementById('empty-state').style.display = 'none';
-        document.getElementById('result-area').style.display = 'flex';
-        document.getElementById('result-area').style.flexDirection = 'column';
-        document.getElementById('result-area').style.gap = '20px';
-    }
-
-    function updateUI() {
-        const resultList = document.getElementById('result-list');
-        resultList.innerHTML = '';
-        participants.forEach(p => {
-            resultList.innerHTML += `<li><span>${p.name}</span> <span>${p.amount.toLocaleString()} 円</span></li>`;
-        });
-
-        const remainderSection = document.getElementById('remainder-section');
-        if (currentRemainder > 0) {
-            document.getElementById('remainder-text').innerText = `現在、余りが ${currentRemainder} 円 あります！`;
-            remainderSection.style.display = 'block';
-
-            const cbContainer = document.getElementById('remainder-checkboxes');
-            cbContainer.innerHTML = '';
-            participants.forEach(p => {
-                cbContainer.innerHTML += `<label><input type="checkbox" class="rem-target" value="${p.id}"> ${p.name}</label>`;
-            });
-
-            const bossSelect = document.getElementById('final-boss');
-            bossSelect.innerHTML = '';
-            participants.forEach(p => {
-                bossSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-            });
-        } else {
-            remainderSection.style.display = 'none';
-        }
-    }
-
-    function executeGacha() {
-        if(currentRemainder <= 0) return;
-        
-        const winnerIndex = Math.floor(Math.random() * participants.length);
-        const winner = participants[winnerIndex];
-        
-        winner.amount += currentRemainder;
-        alert(`🎉 ガチャ結果 🎉\n\n余りの ${currentRemainder}円 は\n【 ${winner.name} 】さんが払います！`);
-        
-        currentRemainder = 0;
-        updateUI();
-        alert("きれいに割り切れました！（余り0円）");
-    }
-
-    function calculateRemainder() {
-        if(currentRemainder <= 0) return;
-
-        const checkboxes = document.querySelectorAll('.rem-target:checked');
-        if (checkboxes.length === 0) {
-            alert("余りを分担する人を1人以上選択してください！");
-            return;
-        }
-
-        const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
-        const splitBase = Math.floor(currentRemainder / selectedIds.length);
-        const splitRem = currentRemainder % selectedIds.length;
-
-        selectedIds.forEach(id => {
-            let p = participants.find(p => p.id === id);
-            p.amount += splitBase;
-        });
-
-        let message = `選択したメンバーに余りを配分しました。`;
-
-        if (splitRem > 0) {
-            const bossId = parseInt(document.getElementById('final-boss').value);
-            let boss = participants.find(p => p.id === bossId);
-            boss.amount += splitRem;
-            message += `\n\nさらに割り切れなかった ${splitRem}円 は設定通り 【 ${boss.name} 】さんが払います！`;
-        }
-
-        alert(message);
-        currentRemainder = 0;
-        updateUI();
-        alert("きれいに割り切れました！（余り0円）");
-    }
-</script>
-
+<h2>⑦総括および今後の対策</h2>
+<h3>【状況の総括】</h3>
+<p>総じて本件は、一部の図書委員によるルールの軽視と、職務怠慢が複合的に引き起こした事案である。これらの行動は、図書委員としての職務を放棄するだけでなく、一般利用者の規範意識の低下を招き、委員会全体の正当性と統制力を根本から揺るがす重大な問題である。</p>
+<h3>【再発防止策】</h3>
+<p>上述の事態を重く受け止め、今後の健全な図書室運営のために以下の措置を講じる。</p>
+<p>１．特定委員の立ち入り制限<br>
+事案⑥の中心である川瀬、小泉、堀江の3名については、他の委員の業務機会確保の観点から、自身のカウンター当番時以外のカウンター内への立ち入りを一切禁止する。</p>
+<p>２．業務妨害の防止<br>
+上記3名以外の委員についても、当番外の際にはカウンター周辺への接近を控えることとする。当番外の委員がシフト中の委員に話しかける行為は、シフト中委員の業務妨害につながるため厳に慎むべきである。</p>
+<p>３．継続的な自己管理の徹底<br>
+数日が経過し「喉元過ぎれば熱さを忘れる」状況になることを防ぐため、当番外で図書室を訪れる際は一人の「一般利用者」としての振る舞いを徹底し、本を借りる・返す等の必要な用件以外はカウンターに近づかないよう、各人が常に対策と自己管理を行う必要がある。</p>
 </body>
 </html>
+"""
+
+html_path = "/mnt/data/library_committee_report.html"
+pdf_path = "/mnt/data/library_committee_report.pdf"
+
+with open(html_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+HTML(filename=html_path).write_pdf(pdf_path)
+print(f"[file-tag: {pdf_path}]")
