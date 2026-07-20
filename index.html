@@ -5,220 +5,231 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>割り勘計算機</title>
     
+    <!-- ファビコン・iOS・Android用アイコン設定 -->
     <link rel="icon" href="/favicon.jpg">
     <link rel="apple-touch-icon" href="/favicon.jpg">
     <meta name="msapplication-TileImage" content="/favicon.jpg">
     
-    <!-- FontAwesome -->
+    <!-- FontAwesome (ボタンのアイコン用) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
     <style>
-        /* === 全体のベースデザイン（ポートフォリオ統一規格） === */
-        :root {
-            --bg: #f8f9fa;
-            --card: #ffffff;
-            --text: #2d3436;
-            --border: 2px solid #000;
-            --shadow: 4px 4px 0px #000;
+        /* === ベースデザイン（テキストツールと統一） === */
+        :root { 
+            --bg: #f8f9fa; 
+            --card: #ffffff; 
+            --text: #2d3436; 
+            --accent: #6bb6ff; 
         }
-
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
+        
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 0; 
         }
 
         /* ヘッダー */
-        .header {
-            padding: 20px 40px;
-            background: #fff;
-            border-bottom: var(--border);
-            font-weight: 800;
-            font-size: 1.5rem;
-            letter-spacing: -0.05em;
+        .header { 
+            padding: 20px 40px; 
+            background: #fff; 
+            border-bottom: 2px solid #000; 
+            font-weight: 800; 
+            font-size: 1.5rem; 
+            letter-spacing: -0.05em; 
         }
 
-        /* コンテナとレイアウト */
-        .app-container {
+        /* コンテナ */
+        .app-container { 
+            display: flex; 
+            gap: 30px; 
+            max-width: 1000px; 
+            margin: 30px auto; 
+            padding: 0 20px; 
+        }
+
+        /* 左右分割 */
+        .left-panel, .right-panel {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 30px;
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        @media (min-width: 768px) {
-            .app-container { flex-direction: row; }
-            .left-pane, .right-pane { flex: 1; }
+            gap: 20px;
         }
 
-        /* カード（パネル）共通スタイル */
-        .card {
-            background: var(--card);
-            border: var(--border);
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: var(--shadow);
+        /* カードデザイン */
+        .card { 
+            background: var(--card); 
+            border: 2px solid #000; 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 4px 4px 0px #000; 
         }
 
-        .card h2 {
-            font-size: 18px;
+        h3 { 
+            font-size: 16px; 
             margin-top: 0;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            border-bottom: 3px solid #000;
-            display: inline-block;
-            padding-bottom: 5px;
-            letter-spacing: 1px;
+            margin-bottom: 20px; 
+            text-transform: uppercase; 
+            border-bottom: 2px solid #000; 
+            display: inline-block; 
+            padding-bottom: 3px;
         }
 
-        /* フォーム部品 */
-        .input-group { margin-bottom: 20px; }
+        /* 入力フォームエリア */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
         .input-group label {
             display: block;
             font-weight: 800;
             margin-bottom: 8px;
             font-size: 14px;
         }
+
         input[type="number"], input[type="text"], select {
             width: 100%;
             padding: 12px;
-            border: var(--border);
+            border: 2px solid #000;
             border-radius: 4px;
             font-size: 16px;
-            font-weight: bold;
             box-sizing: border-box;
-            background: #fafafa;
+            background: #fff;
             color: var(--text);
-            transition: 0.2s;
+            font-family: inherit;
         }
+        
         input:focus, select:focus {
             outline: none;
-            background: #fff;
-            box-shadow: 2px 2px 0px #000;
+            background: #f0f8ff;
         }
 
-        /* メンバー名前入力エリア（サブカード風） */
         .names-container {
-            background: #f1f2f6;
-            padding: 15px;
-            border: 2px dashed #000;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #ccc;
         }
 
-        /* 右側：初期状態 */
+        /* 右側：初期状態（プレースホルダー） */
         .empty-state {
             text-align: center;
             color: #999;
-            padding: 60px 0;
-            font-weight: 800;
+            padding: 60px 20px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
         }
         .empty-state i {
-            font-size: 50px;
+            font-size: 48px;
             color: #ddd;
             margin-bottom: 15px;
         }
 
-        /* 結果リスト */
+        /* 結果表示エリア */
+        .result-area {
+            display: none;
+        }
+
         .result-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
         }
         .result-list li {
-            padding: 15px 10px;
-            border-bottom: 2px dashed #ccc;
+            padding: 12px 5px;
+            border-bottom: 2px dotted #ccc;
             display: flex;
             justify-content: space-between;
-            align-items: center;
         }
-        .result-list li:last-child { border-bottom: none; }
-        .result-amount { color: #e53935; font-size: 24px; }
+        .result-list li:last-child {
+            border-bottom: none;
+        }
 
-        /* 余りアラート・オプション */
+        /* 余りアラート */
         .remainder-alert {
-            background: #ffeaa7;
-            border: var(--border);
-            color: #d35400;
-            padding: 15px;
-            border-radius: 8px;
+            background: #ffeb3b; /* ハイライトと同じ黄色 */
+            border: 2px solid #000;
+            color: #000;
+            padding: 12px;
+            border-radius: 5px;
             font-weight: 800;
             text-align: center;
-            margin: 25px 0;
-            font-size: 18px;
-            box-shadow: 2px 2px 0px #000;
-        }
-
-        .remainder-options {
-            background: #fafafa;
-            border: var(--border);
-            border-radius: 8px;
-            padding: 20px;
+            margin: 20px 0;
         }
 
         .checkbox-group {
+            margin: 15px 0;
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 20px;
         }
         .checkbox-group label {
-            background: #fff;
-            border: var(--border);
-            padding: 8px 12px;
-            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
             font-weight: bold;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
         }
-        .checkbox-group input[type="checkbox"] {
-            width: 18px; height: 18px; accent-color: #000;
+        .checkbox-group input {
+            margin-right: 8px;
         }
 
-        /* === 指定のボタンデザイン === */
-        .button_solid016 { margin: 20px 0; }
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* === ボタンデザイン（統一版） === */
+        .button_solid016 { margin-top: 20px; }
         .button_solid016 a {
             background: #6bb6ff; border-radius: 5px; position: relative; display: flex;
-            justify-content: center; align-items: center; margin: 0 auto;
-            max-width: 100%; padding: 12px 25px; color: #003067; transition: 0.3s;
-            font-weight: 800; border: 2px solid #000; text-decoration: none; z-index: 1; cursor: pointer;
+            justify-content: center; align-items: center; margin: 0 auto; width: 100%;
+            box-sizing: border-box;
+            padding: 12px 20px; color: #003067; transition: 0.3s; font-weight: 800;
+            border: 2px solid #000; text-decoration: none; z-index: 1; cursor: pointer;
         }
         .button_solid016 a:before {
             content: ""; width: 100%; height: 100%; position: absolute; z-index: -1;
+            top: 0; left: 0;
             border: 2px solid #000; border-radius: 5px; background: #e1f3ff;
-            background-image: linear-gradient(45deg, #c8e4ff 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e4ff 0), linear-gradient(45deg, #c8e4ff 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e4ff 0);
-            background-position: 0 0, 15px 15px, 15px 15px, 30px 30px; background-size: 30px 30px;
+            background-image: linear-gradient(45deg, #c8e4ff 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e4ff 0);
+            background-size: 30px 30px;
         }
         .button_solid016 a:after {
             position: absolute; top: 0; bottom: 0; left: -2px; width: calc(100% + 4px); height: 100%; content: '';
             transition: all .3s; transform: translate3d(0, 0.40rem, -1rem);
-            border: 2px solid #000; border-radius: inherit; background: #2b7fde;
+            border: 2px solid #000; border-radius: 5px; background: #2b7fde;
             box-shadow: 0 0.4rem 0 0 rgb(0 0 0 / 20%); z-index: -2;
         }
-        .button_solid016 a i { position: absolute; right: 15px; }
-        .button_solid016 a .fa-calculator { right: auto; left: 15px; }
         .button_solid016 a:hover { transform: translate3d(0, 0.2rem, -1rem); }
         .button_solid016 a:hover:after { transform: translate3d(0, 0.2rem, -1rem); box-shadow: 0 0.2rem 0 0 rgb(0 0 0 / 20%); }
+        .button_solid016 a i { position: absolute; right: 15px; }
+        
+        /* ガチャ・決定ボタン用バリエーション */
+        .btn-orange a { background: #ffb347; color: #5a3000; }
+        .btn-orange a:before { background: #ffe6c4; background-image: linear-gradient(45deg, #ffcca3 25%, transparent 0), linear-gradient(45deg, transparent 75%, #ffcca3 0); }
+        .btn-orange a:after { background: #e08b16; }
 
-        /* ガチャ用ボタン（オレンジ） */
-        .btn-gacha a { background: #ffb347; color: #5a3200; }
-        .btn-gacha a:before { background: #fff0db; background-image: linear-gradient(45deg, #ffd8a6 25%, transparent 0), linear-gradient(45deg, transparent 75%, #ffd8a6 0), linear-gradient(45deg, #ffd8a6 25%, transparent 0), linear-gradient(45deg, transparent 75%, #ffd8a6 0); }
-        .btn-gacha a:after { background: #f39c12; }
+        .btn-green a { background: #81c784; color: #003300; }
+        .btn-green a:before { background: #c8e6c9; background-image: linear-gradient(45deg, #a5d6a7 25%, transparent 0), linear-gradient(45deg, transparent 75%, #a5d6a7 0); }
+        .btn-green a:after { background: #529e55; }
 
-        /* 決定用ボタン（グリーン） */
-        .btn-success a { background: #81c784; color: #003300; }
-        .btn-success a:before { background: #e8f5e9; background-image: linear-gradient(45deg, #c8e6c9 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e6c9 0), linear-gradient(45deg, #c8e6c9 25%, transparent 0), linear-gradient(45deg, transparent 75%, #c8e6c9 0); }
-        .btn-success a:after { background: #4caf50; }
-
-        hr.divider { border: 0; border-bottom: 2px dashed #000; margin: 25px 0; }
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
@@ -228,77 +239,81 @@
 <div class="app-container">
     
     <!-- ▼ 左側：入力セクション ▼ -->
-    <div class="left-pane card">
-        <h2>Input Details</h2>
-        
-        <div class="input-group">
-            <label for="total-amount">合計金額（円）</label>
-            <input type="number" id="total-amount" placeholder="例: 15800" min="1">
-        </div>
+    <div class="left-panel">
+        <div class="card">
+            <h3>Setting</h3>
+            
+            <div class="input-group">
+                <label for="total-amount">合計金額（円）</label>
+                <input type="number" id="total-amount" placeholder="例: 15800" min="1">
+            </div>
 
-        <div class="input-group">
-            <label for="num-people">人数（人）</label>
-            <input type="number" id="num-people" placeholder="例: 4" min="1" oninput="generateNameInputs()">
-        </div>
+            <div class="input-group">
+                <label for="num-people">人数（人）</label>
+                <input type="number" id="num-people" placeholder="例: 4" min="1" oninput="generateNameInputs()">
+            </div>
 
-        <div class="names-container" id="names-container" style="display:none;">
-            <p style="margin-top:0; font-weight:800; font-size:14px; text-align:center;">メンバーの名前（任意）</p>
-            <div id="names-list"></div>
-        </div>
+            <div class="names-container" id="names-container" style="display:none;">
+                <label style="font-weight:800; font-size:14px; display:block; margin-bottom:10px;">メンバーの名前（任意）</label>
+                <div id="names-list"></div>
+            </div>
 
-        <div class="button_solid016">
-            <a onclick="calculateBase()"><i class="fas fa-calculator"></i>まずは均等に計算<i class="fas fa-angle-right"></i></a>
-        </div>
-    </div>
-
-    <!-- ▼ 右側：結果・余り処理セクション ▼ -->
-    <div class="right-pane card">
-        <h2>Result</h2>
-        
-        <!-- 初期状態 -->
-        <div class="empty-state" id="empty-state">
-            <i class="fas fa-receipt"></i><br>
-            左で金額と人数を入力して<br>計算ボタンを押してください
-        </div>
-
-        <div class="result-area" id="result-area" style="display: none;">
-            <ul class="result-list" id="result-list">
-                <!-- 結果リスト -->
-            </ul>
-
-            <!-- 余り処理エリア -->
-            <div id="remainder-section" style="display: none;">
-                <div class="remainder-alert" id="remainder-text"></div>
-
-                <div class="remainder-options">
-                    
-                    <!-- ガチャ機能 -->
-                    <div style="text-align:center; font-weight:bold; font-size:14px;">＼ 運任せ！ ／</div>
-                    <div class="button_solid016 btn-gacha">
-                        <a onclick="executeGacha()">ガチャで1人が払う<i class="fas fa-random"></i></a>
-                    </div>
-                    
-                    <hr class="divider">
-
-                    <!-- 指定メンバーで割る機能 -->
-                    <div style="text-align:center; font-weight:bold; font-size:14px; margin-bottom:15px;">＼ 特定の人で分ける ／</div>
-                    <div class="checkbox-group" id="remainder-checkboxes">
-                        <!-- チェックボックス -->
-                    </div>
-
-                    <div class="input-group">
-                        <label for="final-boss">さらに余った時の最後の1人：</label>
-                        <select id="final-boss"></select>
-                    </div>
-
-                    <div class="button_solid016 btn-success" style="margin-top:20px;">
-                        <a onclick="calculateRemainder()">余りを指定通りに配分<i class="fas fa-check"></i></a>
-                    </div>
-                </div>
+            <div class="button_solid016">
+                <a onclick="calculateBase()">均等に割る<i class="fas fa-calculator"></i></a>
             </div>
         </div>
     </div>
 
+    <!-- ▼ 右側：結果・余り処理セクション ▼ -->
+    <div class="right-panel">
+        
+        <!-- 初期状態のプレースホルダー -->
+        <div class="card empty-state" id="empty-state">
+            <i class="fas fa-receipt"></i>
+            左で条件を入力して<br>計算してください
+        </div>
+
+        <!-- 結果表示 -->
+        <div class="result-area" id="result-area">
+            <div class="card">
+                <h3>Result</h3>
+                <ul class="result-list" id="result-list">
+                    <!-- 結果がここに表示されます -->
+                </ul>
+            </div>
+
+            <!-- 余りがある場合のみ表示されるエリア -->
+            <div id="remainder-section" style="display: none;" class="card">
+                <div class="remainder-alert" id="remainder-text"></div>
+
+                <div class="section-title">🌟 余りはどうする？ 🌟</div>
+                
+                <!-- ガチャ機能 -->
+                <div class="button_solid016 btn-orange">
+                    <a onclick="executeGacha()">ガチャで1人が払う<i class="fas fa-random"></i></a>
+                </div>
+                
+                <hr style="border: 1px dashed #ccc; margin: 25px 0;">
+
+                <!-- 指定メンバーで割る機能 -->
+                <div class="section-title">特定の人で分ける</div>
+                <div class="checkbox-group" id="remainder-checkboxes">
+                    <!-- チェックボックスが生成されます -->
+                </div>
+
+                <div class="input-group">
+                    <label for="final-boss" style="font-size:12px;">さらに余った時の最後の1人：</label>
+                    <select id="final-boss">
+                        <!-- セレクトボックスが生成されます -->
+                    </select>
+                </div>
+                <div class="button_solid016 btn-green" style="margin-top:10px;">
+                    <a onclick="calculateRemainder()">指定通りに配分する<i class="fas fa-check"></i></a>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script>
@@ -314,7 +329,7 @@
             container.style.display = 'block';
             let html = '';
             for (let i = 1; i <= num; i++) {
-                html += `<div class="input-group" style="margin-bottom:10px;">
+                html += `<div class="input-group">
                             <input type="text" id="name-${i}" placeholder="${i}人目の名前" value="メンバー${i}">
                          </div>`;
             }
@@ -324,7 +339,7 @@
         }
         
         document.getElementById('result-area').style.display = 'none';
-        document.getElementById('empty-state').style.display = 'block';
+        document.getElementById('empty-state').style.display = 'flex';
     }
 
     function calculateBase() {
@@ -350,14 +365,16 @@
         updateUI();
         
         document.getElementById('empty-state').style.display = 'none';
-        document.getElementById('result-area').style.display = 'block';
+        document.getElementById('result-area').style.display = 'flex';
+        document.getElementById('result-area').style.flexDirection = 'column';
+        document.getElementById('result-area').style.gap = '20px';
     }
 
     function updateUI() {
         const resultList = document.getElementById('result-list');
         resultList.innerHTML = '';
         participants.forEach(p => {
-            resultList.innerHTML += `<li><span>${p.name}</span> <span class="result-amount">${p.amount.toLocaleString()} 円</span></li>`;
+            resultList.innerHTML += `<li><span>${p.name}</span> <span>${p.amount.toLocaleString()} 円</span></li>`;
         });
 
         const remainderSection = document.getElementById('remainder-section');
@@ -392,6 +409,7 @@
         
         currentRemainder = 0;
         updateUI();
+        alert("きれいに割り切れました！（余り0円）");
     }
 
     function calculateRemainder() {
@@ -422,9 +440,9 @@
         }
 
         alert(message);
-        
         currentRemainder = 0;
         updateUI();
+        alert("きれいに割り切れました！（余り0円）");
     }
 </script>
 
