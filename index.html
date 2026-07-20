@@ -1,7 +1,4 @@
-import os
-from weasyprint import HTML
-
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -108,13 +105,3 @@ p {
 数日が経過し「喉元過ぎれば熱さを忘れる」状況になることを防ぐため、当番外で図書室を訪れる際は一人の「一般利用者」としての振る舞いを徹底し、本を借りる・返す等の必要な用件以外はカウンターに近づかないよう、各人が常に対策と自己管理を行う必要がある。</p>
 </body>
 </html>
-"""
-
-html_path = "/mnt/data/library_committee_report.html"
-pdf_path = "/mnt/data/library_committee_report.pdf"
-
-with open(html_path, "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-HTML(filename=html_path).write_pdf(pdf_path)
-print(f"[file-tag: {pdf_path}]")
