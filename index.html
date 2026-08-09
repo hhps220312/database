@@ -2,106 +2,330 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>はじめデータベース</title>
 <style>
-@page {
-    size: A4;
-    margin: 20mm 20mm;
-    background-color: #ffffff;
-}
-body {
-    font-family: "Noto Serif CJK JP", "MS Mincho", "Hiragino Mincho Pro", serif;
-    font-size: 10.5pt;
-    line-height: 1.7;
-    color: #333333;
-}
-h1 {
-    font-size: 16pt;
-    text-align: center;
-    font-family: "Noto Sans CJK JP", "MS Gothic", "Hiragino Kaku Gothic Pro", sans-serif;
-    margin-bottom: 25px;
-    color: #000000;
-}
-.header-right {
-    text-align: right;
+  /* ページ全体の基本設定 */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f4f5f7;
+  }
+
+  /* 濃いグレーから薄いグレーのグラデーションヘッダー */
+  header {
+    background: linear-gradient(to right, #333333, #888888);
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  /* タイトル */
+  header h1 {
+    margin: 0;
+    font-size: 24px;
+    margin-right: 50px;
+    white-space: nowrap;
+    letter-spacing: 1px;
+  }
+
+  /* 検索バーとボタンのエリア */
+  .search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-container input {
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px 0 0 4px;
+    width: 350px;
+    outline: none;
+  }
+
+  .search-container button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    background-color: #e0e0e0;
+    color: #333;
+    cursor: pointer;
+    border-radius: 0 4px 4px 0;
+    font-weight: bold;
+    transition: background-color 0.2s;
+  }
+
+  .search-container button:hover {
+    background-color: #cccccc;
+  }
+
+  /* 予測変換（サジェスト）ボックス */
+  #suggest-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 350px;
+    background: #ffffff;
+    color: #333;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    display: none;
+    z-index: 10;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+
+  .suggest-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eeeeee;
+  }
+
+  .suggest-item:last-child {
+    border-bottom: none;
+  }
+
+  .suggest-item:hover {
+    background-color: #f0f7ff;
+  }
+
+  /* 予測変換のハイライト（背景黄色） */
+  .highlight {
+    background-color: #ffff00;
+    color: #000;
+    font-weight: bold;
+    border-radius: 2px;
+  }
+
+  /* メインコンテンツ表示部分 */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  /* 複数ヒット時の検索結果一覧 */
+  #search-results {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
     margin-bottom: 20px;
-    font-family: "Noto Sans CJK JP", "MS Gothic", "Hiragino Kaku Gothic Pro", sans-serif;
-    font-size: 10pt;
-}
-h2 {
-    font-size: 11.5pt;
-    font-family: "Noto Sans CJK JP", "MS Gothic", "Hiragino Kaku Gothic Pro", sans-serif;
-    margin-top: 25px;
-    margin-bottom: 10px;
-    page-break-after: avoid;
-    color: #000000;
-}
-h3 {
-    font-size: 10.5pt;
-    font-family: "Noto Sans CJK JP", "MS Gothic", "Hiragino Kaku Gothic Pro", sans-serif;
-    margin-top: 15px;
-    margin-bottom: 5px;
-    page-break-after: avoid;
-    color: #000000;
-}
-p {
-    margin: 0 0 10px 0;
-    text-align: justify;
-}
-.indent {
-    padding-left: 1em;
-}
+    display: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .result-header {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #555;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+  }
+
+  .result-item {
+    padding: 12px;
+    cursor: pointer;
+    color: #0056b3;
+    font-size: 18px;
+    border-bottom: 1px dashed #eee;
+    transition: background-color 0.2s;
+  }
+
+  .result-item:last-child {
+    border-bottom: none;
+  }
+
+  .result-item:hover {
+    text-decoration: underline;
+    background-color: #f9f9f9;
+  }
+
+  /* 実際のコンテンツを表示するiframe */
+  #content-frame {
+    flex: 1;
+    width: 100%;
+    border: 2px solid #ddd;
+    background: #ffffff;
+    border-radius: 8px;
+    display: none;
+    box-sizing: border-box;
+  }
 </style>
 </head>
 <body>
-<div class="header-right">2026年7月20日<br>図書委員会報告記録</div>
-<h1>図書委員に関する問題行動報告と分析</h1>
 
-<h2>①カウンター内でのスマートフォンの常習的使用【影響度：高】</h2>
-<h3>【事実関係】</h3>
-<p>小泉および堀江の両名は、カウンター内での業務中にスマートフォンを常習的に操作していた。校則においてスマートフォンの使用は禁止されており、始業式等の集会でも定期的に指導が行われている。しかし、図書室事務の吉田氏からの注意がない、あるいは注意されても脅威に感じていないことを理由に、両名は当該行為を継続していた。なお、本件は一般利用の生徒からの通報により発覚した。</p>
-<h3>【影響分析】</h3>
-<p>図書委員がカウンター内でスマートフォンを使用する行為は、一般利用者に「図書室ではスマートフォンを操作してもよい」という誤った認識を与える恐れがある。本来、図書委員はルール違反者に対して注意・指導を行う立場にあるが、自身が規則を破っている状態では示しがつかず、「図書委員も使っていた」と反発を招き、指導に従わせることが困難となる。結果として、図書委員全体の信頼を大きく失墜させる危険性を孕んでいた。</p>
+<header>
+  <h1>はじめデータベース</h1>
+  <div class="search-container">
+    <input type="text" id="search-input" placeholder="キーワードや読みで検索..." autocomplete="off">
+    <div id="suggest-box"></div>
+    <button id="search-button">検索</button>
+  </div>
+</header>
 
-<h2>②図書室関連施設での飲食行為【影響度：中〜高】</h2>
-<h3>【事実関係】</h3>
-<p>昼休みの時間帯において、堀江は吉田氏から許可を得た上で、図書室に隣接する研究室で弁当を摂食していた。しかし、食事中に図書室側へ何度か出入りし、その様子が一般利用者に目撃された。堀江自身も図書館（図書室）における飲食禁止のルールは熟知していたはずであるが、吉田氏が「NO」と言わないことを見越して許可を求めており、その態度は悪質であると言わざるを得ない。</p>
-<h3>【影響分析】</h3>
-<p>本件の該当者は堀江のみであり（通報した生徒も他の委員の飲食は確認していないと証言）、図書委員全体への信頼失墜には直結していないものの、一般生徒に対し「図書室周辺で飲食が可能である」という誤認識を与えかねない行為である。今後、図書室内で菓子類などを食べる生徒を注意する際、①の事案と同様に指導の説得力を失い、利用者の統制に重大な支障をきたす可能性が大いにあった。</p>
+<main>
+  <!-- 重複時にズラーっと並ぶ一覧エリア -->
+  <div id="search-results"></div>
+  
+  <!-- ページを表示するエリア -->
+  <iframe id="content-frame" src=""></iframe>
+</main>
 
-<h2>③私物（趣味の物品）の不適切な持ち込みと配置【影響度：中】</h2>
-<h3>【事実関係】</h3>
-<p>川瀬は、「図書室の装飾のため」と称して、自身が趣味とするアニメ関連のグッズを多数図書室内に配置している。さらに、クラスで配布されたタオルやメガホンといった、図書室の環境に不釣り合いな私物までも室内に放置している状態である。</p>
-<h3>【影響分析】</h3>
-<p>図書室は公共の学習・読書空間であり、個人の私室ではない。特定のアニメグッズ等の過度な配置は、そうした分野に関心のない一般利用者が図書室へ入りにくくなる心理的障壁を生む恐れがある。公共の場としての適切性や、万人が利用しやすい環境づくりという観点から不適切である。</p>
+<script>
+// データベースの中身（URLはダミーで「example.com」を入れています）
+// 自分で作ったページを表示させたい場合は、urlを "./kawase.html" のように変更してください。
+const database = [
+  { title: "川瀬あお葉", kana: "かわせあおば", romaji: "kawaseaoba", url: "https://example.com/?q=川瀬あお葉" },
+  { title: "片岡嬉咲野", kana: "かたおかきさの", romaji: "kataokakisano", url: "https://example.com/?q=片岡嬉咲野" },
+  { title: "片岡利御奈", kana: "かたおかりおな", romaji: "kataokariona", url: "https://example.com/?q=片岡利御奈" },
+  // 「s」や「さ」で予測変換が出るかをテストするための追加データです
+  { title: "佐々木さくら", kana: "ささきさくら", romaji: "sasakisakura", url: "https://example.com/?q=佐々木さくら" }
+];
 
-<h2>④委員会業務（シフト・定例会）の常習的放棄【影響度：中】</h2>
-<h3>【事実関係】</h3>
-<p>小林は、図書委員の本来の業務であるカウンター当番のシフトや、定例会に対して常習的に無断欠席（サボり）を繰り返している。</p>
-<h3>【影響分析】</h3>
-<p>他の委員が多忙な中で責任を果たしているのに対し、特定の委員が常習的に業務を放棄する状況は、「真面目に取り組んでいる者が損をする状態」を生み出している。これは図書委員会全体の士気やモチベーションを著しく低下させる主要な要因となる。</p>
+const searchInput = document.getElementById("search-input");
+const suggestBox = document.getElementById("suggest-box");
+const searchButton = document.getElementById("search-button");
+const searchResults = document.getElementById("search-results");
+const contentFrame = document.getElementById("content-frame");
 
-<h2>⑤定例会における不適切な態度【影響度：低〜中】</h2>
-<h3>【事実関係】</h3>
-<p>定例会の進行中、小泉、堀江、長澤の3名は、話を聞かずに私語を交わしたり、iPadを用いて会議と無関係な操作を行ったりしている。</p>
-<h3>【影響分析】</h3>
-<p>会議の進行側（司会者等）に退屈させない工夫が求められる余地があるとはいえ、業務の場において上記のような態度は許容されるものではない。司会者や、真摯に委員会活動に取り組んでいる他の委員に対して不快感を与え、委員内の協力体制や人間関係に悪影響を及ぼす行為である。</p>
+// 文字列の中の、予測された部分の背景を黄色（ハイライト）にする関数
+function highlightText(text, query) {
+  if (!query) return text;
+  // 正規表現を使って入力された文字を探し出す
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapedQuery})`, 'gi');
+  // <span class="highlight"> で囲むことでCSSの黄色背景を適用
+  return text.replace(regex, '<span class="highlight">$1</span>');
+}
 
-<h2>⑥カウンターへの不必要・不適切な常駐と職務怠慢【影響度：高】</h2>
-<h3>【事実関係】</h3>
-<p>川瀬、小泉、堀江の3名は、自身のシフト外であっても常時カウンター内に滞在している。カウンター内にいること自体は本来問題ではないが、実態としては前述のスマートフォン操作、飲食、私物の配置など、本来の業務（貸出・返却対応、ディスプレイ装飾等）とは無関係な行為に終始している。さらに、私語等の影響で一般生徒をカウンター内に招き入れ、それを注意するどころか共に談笑するなど、カウンター内への立ち入りを容認するような雰囲気を作り出している。</p>
-<h3>【影響分析】</h3>
-<p>業務を行わずにカウンター内で遊興にふける行為は言語道断である。また、川瀬のように一定の業務をこなしている側面があっても、この3名が常駐していることで、小林等の意欲の低い委員に対して「あいつらがいるからカウンター当番に行かなくてもよい」というサボりの口実を与えてしまっている。さらに、新任の1年生委員に対して「あの人たちがやっているから自分が介入しづらい」という心理的圧迫を与え、彼らが経験を積む機会を不当に奪っている。</p>
+// 検索欄に入力している最中（予測変換の表示）
+searchInput.addEventListener("input", function() {
+  const query = this.value.trim().toLowerCase();
+  
+  if (!query) {
+    suggestBox.style.display = "none";
+    return;
+  }
+  
+  // 漢字・ひらがな・ローマ字のどこかに入力文字が含まれるものを探す
+  const matchedData = database.filter(item => 
+    item.title.toLowerCase().includes(query) || 
+    item.kana.includes(query) || 
+    item.romaji.includes(query)
+  );
+  
+  if (matchedData.length > 0) {
+    suggestBox.innerHTML = "";
+    matchedData.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "suggest-item";
+      
+      // 表示テキスト（例：片岡嬉咲野 (かたおかきさの)）
+      const displayText = `${item.title} (${item.kana})`;
+      
+      // 一致している部分を黄色くする
+      div.innerHTML = highlightText(displayText, query);
+      
+      // 予測変換をクリックした時の動き
+      div.addEventListener("click", function() {
+        searchInput.value = item.title;
+        suggestBox.style.display = "none";
+        doSearch(); // クリックしたらそのまま検索を実行！
+      });
+      
+      suggestBox.appendChild(div);
+    });
+    suggestBox.style.display = "block";
+  } else {
+    suggestBox.style.display = "none"; // 該当がなければ隠す
+  }
+});
 
-<h2>⑦総括および今後の対策</h2>
-<h3>【状況の総括】</h3>
-<p>総じて本件は、一部の図書委員によるルールの軽視と、職務怠慢が複合的に引き起こした事案である。これらの行動は、図書委員としての職務を放棄するだけでなく、一般利用者の規範意識の低下を招き、委員会全体の正当性と統制力を根本から揺るがす重大な問題である。</p>
-<h3>【再発防止策】</h3>
-<p>上述の事態を重く受け止め、今後の健全な図書室運営のために以下の措置を講じる。</p>
-<p>１．特定委員の立ち入り制限<br>
-事案⑥の中心である川瀬、小泉、堀江の3名については、他の委員の業務機会確保の観点から、自身のカウンター当番時以外のカウンター内への立ち入りを一切禁止する。</p>
-<p>２．業務妨害の防止<br>
-上記3名以外の委員についても、当番外の際にはカウンター周辺への接近を控えることとする。当番外の委員がシフト中の委員に話しかける行為は、シフト中委員の業務妨害につながるため厳に慎むべきである。</p>
-<p>３．継続的な自己管理の徹底<br>
-数日が経過し「喉元過ぎれば熱さを忘れる」状況になることを防ぐため、当番外で図書室を訪れる際は一人の「一般利用者」としての振る舞いを徹底し、本を借りる・返す等の必要な用件以外はカウンターに近づかないよう、各人が常に対策と自己管理を行う必要がある。</p>
+// 検索ボタンを押した時
+searchButton.addEventListener("click", doSearch);
+
+// エンターキーを押した時でも検索できるように
+searchInput.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    if (e.isComposing) return; // 漢字変換中のエンターは無視する
+    suggestBox.style.display = "none";
+    doSearch();
+  }
+});
+
+// 検索バー以外をクリックしたら予測変換を閉じる
+document.addEventListener("click", function(e) {
+  if (!e.target.closest('.search-container')) {
+    suggestBox.style.display = "none";
+  }
+});
+
+// 検索を実行するメインの処理
+function doSearch() {
+  const query = searchInput.value.trim().toLowerCase();
+  if (!query) return;
+  
+  suggestBox.style.display = "none"; // 検索したら予測変換は閉じる
+  
+  // 該当するデータを探す
+  const results = database.filter(item => 
+    item.title.toLowerCase().includes(query) || 
+    item.kana.includes(query) || 
+    item.romaji.includes(query)
+  );
+  
+  searchResults.innerHTML = "";
+  
+  if (results.length === 0) {
+    // 0件のとき
+    searchResults.innerHTML = "<div class='result-header'>該当するページが見つかりませんでした。</div>";
+    searchResults.style.display = "block";
+    contentFrame.style.display = "none";
+
+  } else if (results.length === 1) {
+    // 1件だけのとき（ピタリ賞）
+    // 一覧は出さずに、いきなり下の枠(iframe)にページを表示する
+    searchResults.style.display = "none";
+    contentFrame.src = results[0].url;
+    contentFrame.style.display = "block";
+
+  } else {
+    // 複数あるとき（例：「片岡」で検索したとき）
+    const header = document.createElement("div");
+    header.className = "result-header";
+    header.textContent = `${results.length}件の検索結果があります。クリックしてページを表示してください。`;
+    searchResults.appendChild(header);
+    
+    // 下にズラーっと並べる
+    results.forEach(item => {
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "result-item";
+      itemDiv.textContent = item.title;
+      
+      // 並んだタイトルをクリックした時の動き
+      itemDiv.addEventListener("click", function() {
+        contentFrame.src = item.url;
+        contentFrame.style.display = "block";
+      });
+      
+      searchResults.appendChild(itemDiv);
+    });
+    
+    searchResults.style.display = "block";
+    contentFrame.style.display = "none";
+  }
+}
+</script>
 </body>
 </html>
