@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>はじめデータベース</title>
 <style>
-  /* ページ全体の基本設定 */
   body {
     margin: 0;
     padding: 0;
@@ -16,7 +15,6 @@
     background-color: #f4f5f7;
   }
 
-  /* 濃いグレーから薄いグレーのグラデーションヘッダー */
   header {
     background: linear-gradient(to right, #333333, #888888);
     padding: 15px 30px;
@@ -26,7 +24,6 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
 
-  /* タイトル */
   header h1 {
     margin: 0;
     font-size: 24px;
@@ -35,7 +32,6 @@
     letter-spacing: 1px;
   }
 
-  /* 検索バーとボタンのエリア */
   .search-container {
     position: relative;
     display: flex;
@@ -67,7 +63,6 @@
     background-color: #cccccc;
   }
 
-  /* 予測変換（サジェスト）ボックス */
   #suggest-box {
     position: absolute;
     top: 100%;
@@ -97,7 +92,6 @@
     background-color: #f0f7ff;
   }
 
-  /* 予測変換のハイライト（背景黄色） */
   .highlight {
     background-color: #ffff00;
     color: #000;
@@ -105,7 +99,6 @@
     border-radius: 2px;
   }
 
-  /* メインコンテンツ表示部分 */
   main {
     flex: 1;
     display: flex;
@@ -114,7 +107,6 @@
     box-sizing: border-box;
   }
 
-  /* 複数ヒット時の検索結果一覧 */
   #search-results {
     background: #ffffff;
     border: 1px solid #ddd;
@@ -151,7 +143,6 @@
     background-color: #f9f9f9;
   }
 
-  /* 実際のコンテンツを表示するiframe */
   #content-frame {
     flex: 1;
     width: 100%;
@@ -168,29 +159,24 @@
 <header>
   <h1>はじめデータベース</h1>
   <div class="search-container">
-    <input type="text" id="search-input" placeholder="キーワードや読みで検索..." autocomplete="off">
+    <input type="text" id="search-input" placeholder="キーワードで検索..." autocomplete="off">
     <div id="suggest-box"></div>
     <button id="search-button">検索</button>
   </div>
 </header>
 
 <main>
-  <!-- 重複時にズラーっと並ぶ一覧エリア -->
   <div id="search-results"></div>
-  
-  <!-- ページを表示するエリア -->
   <iframe id="content-frame" src=""></iframe>
 </main>
 
 <script>
-// データベースの中身（URLはダミーで「example.com」を入れています）
-// 自分で作ったページを表示させたい場合は、urlを "./kawase.html" のように変更してください。
+// データベースの中身（タイトルとURLのみにシンプル化！）
 const database = [
-  { title: "川瀬あお葉", kana: "かわせあおば", romaji: "kawaseaoba", url: "https://example.com/?q=川瀬あお葉" },
-  { title: "片岡嬉咲野", kana: "かたおかきさの", romaji: "kataokakisano", url: "https://example.com/?q=片岡嬉咲野" },
-  { title: "片岡利御奈", kana: "かたおかりおな", romaji: "kataokariona", url: "https://example.com/?q=片岡利御奈" },
-  // 「s」や「さ」で予測変換が出るかをテストするための追加データです
-  { title: "佐々木さくら", kana: "ささきさくら", romaji: "sasakisakura", url: "https://example.com/?q=佐々木さくら" }
+  { title: "川瀬あお葉", url: "https://example.com/?q=川瀬あお葉" },
+  { title: "片岡嬉咲野", url: "https://example.com/?q=片岡嬉咲野" },
+  { title: "片岡利御奈", url: "https://example.com/?q=片岡利御奈" },
+  { title: "佐々木さくら", url: "https://example.com/?q=佐々木さくら" }
 ];
 
 const searchInput = document.getElementById("search-input");
@@ -199,17 +185,15 @@ const searchButton = document.getElementById("search-button");
 const searchResults = document.getElementById("search-results");
 const contentFrame = document.getElementById("content-frame");
 
-// 文字列の中の、予測された部分の背景を黄色（ハイライト）にする関数
+// ハイライト関数（変更なし）
 function highlightText(text, query) {
   if (!query) return text;
-  // 正規表現を使って入力された文字を探し出す
   const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`(${escapedQuery})`, 'gi');
-  // <span class="highlight"> で囲むことでCSSの黄色背景を適用
   return text.replace(regex, '<span class="highlight">$1</span>');
 }
 
-// 検索欄に入力している最中（予測変換の表示）
+// 予測変換の表示（タイトルのみで検索するように変更）
 searchInput.addEventListener("input", function() {
   const query = this.value.trim().toLowerCase();
   
@@ -218,11 +202,9 @@ searchInput.addEventListener("input", function() {
     return;
   }
   
-  // 漢字・ひらがな・ローマ字のどこかに入力文字が含まれるものを探す
+  // title のみで検索
   const matchedData = database.filter(item => 
-    item.title.toLowerCase().includes(query) || 
-    item.kana.includes(query) || 
-    item.romaji.includes(query)
+    item.title.toLowerCase().includes(query)
   );
   
   if (matchedData.length > 0) {
@@ -231,40 +213,33 @@ searchInput.addEventListener("input", function() {
       const div = document.createElement("div");
       div.className = "suggest-item";
       
-      // 表示テキスト（例：片岡嬉咲野 (かたおかきさの)）
-      const displayText = `${item.title} (${item.kana})`;
+      // 表示テキストもタイトルのみ
+      div.innerHTML = highlightText(item.title, query);
       
-      // 一致している部分を黄色くする
-      div.innerHTML = highlightText(displayText, query);
-      
-      // 予測変換をクリックした時の動き
       div.addEventListener("click", function() {
         searchInput.value = item.title;
         suggestBox.style.display = "none";
-        doSearch(); // クリックしたらそのまま検索を実行！
+        doSearch();
       });
       
       suggestBox.appendChild(div);
     });
     suggestBox.style.display = "block";
   } else {
-    suggestBox.style.display = "none"; // 該当がなければ隠す
+    suggestBox.style.display = "none";
   }
 });
 
-// 検索ボタンを押した時
 searchButton.addEventListener("click", doSearch);
 
-// エンターキーを押した時でも検索できるように
 searchInput.addEventListener("keydown", function(e) {
   if (e.key === "Enter") {
-    if (e.isComposing) return; // 漢字変換中のエンターは無視する
+    if (e.isComposing) return;
     suggestBox.style.display = "none";
     doSearch();
   }
 });
 
-// 検索バー以外をクリックしたら予測変換を閉じる
 document.addEventListener("click", function(e) {
   if (!e.target.closest('.search-container')) {
     suggestBox.style.display = "none";
@@ -276,48 +251,47 @@ function doSearch() {
   const query = searchInput.value.trim().toLowerCase();
   if (!query) return;
   
-  suggestBox.style.display = "none"; // 検索したら予測変換は閉じる
+  suggestBox.style.display = "none";
   
-  // 該当するデータを探す
+  // title のみで検索
   const results = database.filter(item => 
-    item.title.toLowerCase().includes(query) || 
-    item.kana.includes(query) || 
-    item.romaji.includes(query)
+    item.title.toLowerCase().includes(query)
   );
   
   searchResults.innerHTML = "";
   
   if (results.length === 0) {
-    // 0件のとき
     searchResults.innerHTML = "<div class='result-header'>該当するページが見つかりませんでした。</div>";
     searchResults.style.display = "block";
     contentFrame.style.display = "none";
 
   } else if (results.length === 1) {
-    // 1件だけのとき（ピタリ賞）
-    // 一覧は出さずに、いきなり下の枠(iframe)にページを表示する
     searchResults.style.display = "none";
     contentFrame.src = results[0].url;
     contentFrame.style.display = "block";
 
   } else {
-    // 複数あるとき（例：「片岡」で検索したとき）
     const header = document.createElement("div");
     header.className = "result-header";
     header.textContent = `${results.length}件の検索結果があります。クリックしてページを表示してください。`;
     searchResults.appendChild(header);
     
-    // 下にズラーっと並べる
     results.forEach(item => {
       const itemDiv = document.createElement("div");
       itemDiv.className = "result-item";
       itemDiv.textContent = item.title;
       
-      // 並んだタイトルをクリックした時の動き
+      // ▼▼▼ 修正ポイント ▼▼▼
+      // 一覧から項目をクリックしたとき
       itemDiv.addEventListener("click", function() {
+        // ① 検索結果一覧（「〇件の検索結果があります…」を含むエリア）を消す！
+        searchResults.style.display = "none";
+        
+        // ② iframeにURLをセットして、画面いっぱいに表示する！
         contentFrame.src = item.url;
         contentFrame.style.display = "block";
       });
+      // ▲▲▲ 修正ポイント ▲▲▲
       
       searchResults.appendChild(itemDiv);
     });
