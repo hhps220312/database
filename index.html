@@ -20,14 +20,7 @@
             <div class="search-box">
                 <div class="search-grid">
                     <label>ID:</label> <input type="text" id="search-id" placeholder="自由入力">
-                    <label>階級:</label>
-                    <select id="search-rank" class="classic-select">
-                        <option value="">すべて</option>
-                        <option value="青">青</option>
-                        <option value="緑">緑</option>
-                        <option value="赤">赤</option>
-                        <option value="橙">橙</option>
-                    </select>
+                    <div></div><div></div>
                     
                     <label>苗字:</label> <input type="text" id="search-lastname" placeholder="漢字/ひらがな">
                     <label>名前:</label> <input type="text" id="search-firstname" placeholder="漢字/ひらがな">
@@ -37,7 +30,6 @@
                         <option value="">すべて</option>
                         <option value="女">女</option>
                         <option value="男">男</option>
-                        <option value="被験体">被験体</option>
                     </select>
                     <label>血液型:</label> 
                     <select id="search-blood" class="classic-select">
@@ -50,10 +42,10 @@
                     </select>
                     
                     <label>生年月日:</label> <input type="date" id="search-birth">
-                    <label>入所年月日:</label> <input type="date" id="search-entry">
-                    <label>退所年月日:</label> <input type="date" id="search-exit">
                     <label>住所:</label> <input type="text" id="search-address">
+                    
                     <label>キーワード:</label> <input type="text" id="search-keyword" placeholder="詳細・備考から検索">
+                    <div></div><div></div>
                 </div>
                 <div class="search-actions">
                     <button onclick="searchData()" class="action-btn">検索実行</button>
@@ -62,7 +54,7 @@
             </div>
             <div class="result-box">
                 <table id="result-table">
-                    <thead><tr><th>ID</th><th>階級</th><th>氏名</th><th>性別</th><th>年齢</th><th>操作</th></tr></thead>
+                    <thead><tr><th>ID</th><th>氏名</th><th>性別</th><th>年齢</th><th>操作</th></tr></thead>
                     <tbody id="result-body">
                         <!-- 検索結果 -->
                     </tbody>
@@ -75,14 +67,7 @@
             <input type="hidden" id="edit-doc-id"> <!-- 編集用のID保持 -->
             <div class="form-grid">
                 <label>ID:</label> <input type="text" id="reg-id">
-                <label>階級:</label>
-                <select id="reg-rank" class="classic-select">
-                    <option value="">選択</option>
-                    <option value="青">青</option>
-                    <option value="緑">緑</option>
-                    <option value="赤">赤</option>
-                    <option value="橙">橙</option>
-                </select>
+                <div></div><div></div>
 
                 <label>苗字:</label> <input type="text" id="reg-lastname">
                 <label>苗字(ふりがな):</label> <input type="text" id="reg-lastname-kana">
@@ -94,7 +79,6 @@
                 <select id="reg-gender" class="classic-select">
                     <option value="女">女</option>
                     <option value="男">男</option>
-                    <option value="被験体">被験体</option>
                 </select>
                 
                 <label>血液型:</label>
@@ -107,8 +91,8 @@
                 </select>
                 
                 <label>生年月日:</label> <input type="date" id="reg-birth">
-                <label>入所年月日:</label> <input type="date" id="reg-entry">
-                <label>退所年月日:</label> <input type="date" id="reg-exit">
+                <div></div><div></div>
+                
                 <label>住所:</label> <input type="text" id="reg-address" style="grid-column: span 3; width: 95%;">
                 
                 <label>顔写真URL:</label> <input type="text" id="reg-photo-url" placeholder="画像のリンクURLを入力" style="grid-column: span 3; width: 95%;">
@@ -163,7 +147,7 @@
                     <img id="view-photo" src="" alt="顔写真" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'160\' viewBox=\'0 0 120 160\'%3E%3Crect width=\'120\' height=\'160\' fill=\'%23d4d0c8\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23808080\' font-size=\'14\'%3E写真なし%3C/text%3E%3C/svg%3E'">
                 </div>
                 <div class="profile-title">
-                    <div id="view-id-rank">ID: - / 階級: -</div>
+                    <div id="view-id-rank">ID: -</div>
                     <div id="view-kana" class="kana-text"></div>
                     <h2 id="view-name">名前</h2>
                 </div>
@@ -172,7 +156,6 @@
             <table class="info-table">
                 <tr><th>性別</th><td id="view-gender"></td><th>血液型</th><td id="view-blood"></td></tr>
                 <tr><th>生年月日</th><td id="view-birth"></td><th>年齢</th><td id="view-age"></td></tr>
-                <tr><th>入所日</th><td id="view-entry"></td><th>退所日</th><td id="view-exit"></td></tr>
                 <tr><th>住所</th><td colspan="3" id="view-address"></td></tr>
             </table>
 
