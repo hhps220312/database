@@ -1,21 +1,20 @@
-// Firebaseの設定（コンソールで取得したものをここに貼ります）
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  // ★ここにFirebaseで取得したAPIキーなどを貼り付けてください
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBqR8bkOF0a7RaL_Rkaz7MIg56wcWfoZek",
+  authDomain: "database-1c626.firebaseapp.com",
+  projectId: "database-1c626",
+  storageBucket: "database-1c626.firebasestorage.app",
+  messagingSenderId: "815988357212",
+  appId: "1:815988357212:web:e25569a811990059c34e99",
+  measurementId: "G-8FHGC1J0EG"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 画面切り替え機能（同じウィンドウ内で完結）
+// 画面切り替え機能
 window.showScreen = function(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
     document.getElementById(screenId).style.display = 'block';
@@ -57,10 +56,11 @@ window.saveData = async function() {
         showScreen('search-screen'); // 検索画面に戻る
     } catch (e) {
         console.error("エラー: ", e);
+        alert("保存に失敗しました。FirebaseのFirestoreが作成されているか確認してください。");
     }
 }
 
-// 検索機能（「田中」のみ、または「男」のみ等で複数ヒットさせる）
+// 検索機能
 window.searchData = async function() {
     const searchLastname = document.getElementById("search-lastname").value;
     const searchGender = document.getElementById("search-gender").value;
@@ -72,7 +72,6 @@ window.searchData = async function() {
     tbody.innerHTML = ""; // 一旦クリア
 
     let results = [];
-    // 一度全部取得してJavascript側で柔軟に絞り込む（部分一致などもやりやすいため）
     querySnapshot.forEach((doc) => {
         const data = doc.data();
         let match = true;
@@ -125,7 +124,7 @@ window.viewDetail = function(dataStr) {
     htmlText = htmlText.replace(/== (.*?) ==/g, "<h3>$1</h3>");
     // 2. **太字** を <strong> に変換
     htmlText = htmlText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-    // 3. [[名前]] をリンクに変換（クリックでその名前を自動検索する動作）
+    // 3. [[名前]] をリンクに変換
     htmlText = htmlText.replace(/\[\[(.*?)\]\]/g, "<a onclick=\"searchFromLink('$1')\">$1</a>");
     // 4. 改行を <br> に
     htmlText = htmlText.replace(/\n/g, "<br>");
@@ -136,9 +135,8 @@ window.viewDetail = function(dataStr) {
 
 // リンク化された名前をクリックしたときの動作
 window.searchFromLink = function(name) {
-    // 苗字検索欄に名前を入れて検索画面に戻り、自動検索
     document.getElementById("search-lastname").value = name;
-    document.getElementById("search-gender").value = ""; // 性別リセット
+    document.getElementById("search-gender").value = "";
     showScreen('search-screen');
     searchData();
 }
