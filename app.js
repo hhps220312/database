@@ -99,7 +99,6 @@ window.saveData = async function() {
 
     const data = {
         studentId: document.getElementById("reg-id").value,
-        rank: document.getElementById("reg-rank").value,
         lastname: document.getElementById("reg-lastname").value,
         lastnameKana: document.getElementById("reg-lastname-kana").value,
         firstname: document.getElementById("reg-firstname").value,
@@ -107,8 +106,6 @@ window.saveData = async function() {
         gender: document.getElementById("reg-gender").value,
         blood: document.getElementById("reg-blood").value,
         birth: document.getElementById("reg-birth").value,
-        entry: document.getElementById("reg-entry").value,
-        exit: document.getElementById("reg-exit").value,
         address: document.getElementById("reg-address").value,
         photoUrl: document.getElementById("reg-photo-url").value,
         family: familyData,
@@ -155,14 +152,11 @@ function toHiragana(str) {
 window.searchData = async function() {
     // 検索条件の取得
     const sId = document.getElementById("search-id").value;
-    const sRank = document.getElementById("search-rank").value;
     const sLast = document.getElementById("search-lastname").value;
     const sFirst = document.getElementById("search-firstname").value;
     const sGender = document.getElementById("search-gender").value;
     const sBlood = document.getElementById("search-blood").value;
     const sBirth = document.getElementById("search-birth").value;
-    const sEntry = document.getElementById("search-entry").value;
-    const sExit = document.getElementById("search-exit").value;
     const sAddress = document.getElementById("search-address").value;
     const sKeyword = document.getElementById("search-keyword").value.toLowerCase();
     
@@ -178,7 +172,6 @@ window.searchData = async function() {
         let match = true;
         
         if (sId && (!d.studentId || !d.studentId.includes(sId))) match = false;
-        if (sRank && d.rank !== sRank) match = false;
         
         // 苗字名前（漢字・ひらがな両対応の簡易版）
         if (sLast) {
@@ -193,8 +186,6 @@ window.searchData = async function() {
         if (sGender && d.gender !== sGender) match = false;
         if (sBlood && d.blood !== sBlood) match = false;
         if (sBirth && d.birth !== sBirth) match = false;
-        if (sEntry && d.entry !== sEntry) match = false;
-        if (sExit && d.exit !== sExit) match = false;
         if (sAddress && (!d.address || !d.address.includes(sAddress))) match = false;
         
         // キーワード検索（詳細と備考）
@@ -215,7 +206,6 @@ window.searchData = async function() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td style="font-weight:bold;">${d.studentId || '-'}</td>
-            <td>${d.rank || '-'}</td>
             <td>${d.lastname || ''} ${d.firstname || ''}</td>
             <td>${d.gender || '-'}</td>
             <td>${age}</td>
@@ -225,7 +215,7 @@ window.searchData = async function() {
     });
 
     if(results.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6'>該当するデータがありません</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='5'>該当するデータがありません</td></tr>";
     }
 }
 
@@ -235,7 +225,7 @@ function parseWiki(text) {
     let html = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     html = html.replace(/== (.*?) ==/g, "<h3>$1</h3>");
     html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-    html = html.replace(/\[\[(.*?)\]\]/g, "<a onclick="searchFromLink('$1')">$1</a>");
+    html = html.replace(/\[\[(.*?)\]\]/g, "<a onclick=\"searchFromLink('$1')\">$1</a>"); // 構文エラーを修正
     html = html.replace(/\n/g, "<br>");
     return html;
 }
@@ -247,7 +237,7 @@ window.viewDetail = function(dataStr) {
     
     // ヘッダー情報
     document.getElementById("view-photo").src = data.photoUrl || "";
-    document.getElementById("view-id-rank").innerText = `ID: ${data.studentId || '-'} / 階級: ${data.rank || '-'}`;
+    document.getElementById("view-id-rank").innerText = `ID: ${data.studentId || '-'}`;
     document.getElementById("view-kana").innerText = `${data.lastnameKana || ''} ${data.firstnameKana || ''}`;
     document.getElementById("view-name").innerText = `${data.lastname || ''} ${data.firstname || ''}`;
     
@@ -256,8 +246,6 @@ window.viewDetail = function(dataStr) {
     document.getElementById("view-blood").innerText = data.blood || '-';
     document.getElementById("view-birth").innerText = data.birth || '-';
     document.getElementById("view-age").innerText = calculateAge(data.birth);
-    document.getElementById("view-entry").innerText = data.entry || '-';
-    document.getElementById("view-exit").innerText = data.exit || '-';
     document.getElementById("view-address").innerText = data.address || '-';
     
     // 家族情報（登録があれば表示）
@@ -305,7 +293,6 @@ window.editCurrentData = function() {
     document.getElementById("edit-doc-id").value = d.docId;
     
     document.getElementById("reg-id").value = d.studentId || "";
-    document.getElementById("reg-rank").value = d.rank || "";
     document.getElementById("reg-lastname").value = d.lastname || "";
     document.getElementById("reg-lastname-kana").value = d.lastnameKana || "";
     document.getElementById("reg-firstname").value = d.firstname || "";
@@ -313,8 +300,6 @@ window.editCurrentData = function() {
     document.getElementById("reg-gender").value = d.gender || "女";
     document.getElementById("reg-blood").value = d.blood || "";
     document.getElementById("reg-birth").value = d.birth || "";
-    document.getElementById("reg-entry").value = d.entry || "";
-    document.getElementById("reg-exit").value = d.exit || "";
     document.getElementById("reg-address").value = d.address || "";
     document.getElementById("reg-photo-url").value = d.photoUrl || "";
     document.getElementById("reg-details").value = d.details || "";
@@ -333,8 +318,7 @@ window.deleteCurrentData = async function() {
     const d = window.currentViewingData;
     if(!d) return;
     
-    if(confirm(`本当に ${d.lastname} ${d.firstname} のデータを削除しますか？
-この操作は取り消せません。`)) {
+    if(confirm(`本当に ${d.lastname} ${d.firstname} のデータを削除しますか？\nこの操作は取り消せません。`)) {
         try {
             await deleteDoc(doc(db, "persons", d.docId));
             alert("削除しました。");
