@@ -14,9 +14,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 年齢計算関数
+// 年齢計算関数（「ー」を「-」に変更）
 function calculateAge(birthDateString) {
-    if (!birthDateString) return "ー";
+    if (!birthDateString) return "-";
     const today = new Date();
     const birthDate = new Date(birthDateString);
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -25,6 +25,28 @@ function calculateAge(birthDateString) {
         age--;
     }
     return age;
+}
+
+// 続柄の文字数を揃える関数
+function formatRelation(rel) {
+    switch(rel) {
+        case '父': return ' 父 ';
+        case '母': return ' 母 ';
+        case '兄': return ' 兄 ';
+        case '弟': return ' 弟 ';
+        case '姉': return ' 姉 ';
+        case '妹': return ' 妹 ';
+        case '祖父': return '祖 父';
+        case '祖母': return '祖 母';
+        case '子': return ' 子 ';
+        case '配偶者': return '配偶者';
+        case 'その他': return 'その他';
+        default: 
+            if(!rel) return '   ';
+            if(rel.length === 1) return ' ' + rel + ' ';
+            if(rel.length === 2) return rel[0] + ' ' + rel[1];
+            return rel;
+    }
 }
 
 // 画面切り替え
@@ -59,8 +81,13 @@ window.insertText = function(targetId, prefix, suffix) {
     textarea.selectionEnd = start + prefix.length;
 }
 
-// 家族行の追加
-window.addFamilyRow = function(relation = "", name = "") {
+// 家族行の追加（苗字・名前・旧姓を分離）
+window.addFamilyRow = function(relation = "", lastname = "", firstname = "", maidenname = "", oldName = "") {
+    // 過去のデータで「氏名」しか登録されていない人への対応
+    if (oldName && !lastname && !firstname) {
+        lastname = oldName;
+    }
+
     const container = document.getElementById("family-list");
     const div = document.createElement("div");
     div.className = "family-row";
@@ -79,7 +106,9 @@ window.addFamilyRow = function(relation = "", name = "") {
             <option value="子" ${relation==='子'?'selected':''}>子</option>
             <option value="その他" ${relation==='その他'?'selected':''}>その他</option>
         </select>
-        <input type="text" class="family-name" placeholder="氏名（旧姓なども可）" value="${name}" style="width: 200px;">
+        <input type="text" class="family-lastname" placeholder="苗字" value="${lastname}" style="width: 100px;">
+        <input type="text" class="family-firstname" placeholder="名前" value="${firstname}" style="width: 100px;">
+        <input type="text" class="family-maidenname" placeholder="旧姓" value="${maidenname}" style="width: 100px;">
         <button type="button" onclick="this.parentElement.remove()">削除</button>
     `;
     container.appendChild(div);
@@ -93,8 +122,13 @@ window.saveData = async function() {
     const familyData = [];
     document.querySelectorAll(".family-row").forEach(row => {
         const relation = row.querySelector(".family-relation").value;
-        const name = row.querySelector(".family-name").value;
-        if(relation || name) familyData.push({ relation, name });
+        const lastname = row.querySelector(".family-lastname").value;
+        const firstname = row.querySelector(".family-firstname").value;
+        const maidenname = row.querySelector(".family-maidenname").value;
+        
+        if(relation || lastname || firstname) {
+            familyData.push({ relation, lastname, firstname, maidenname });
+        }
     });
 
     const data = {
@@ -173,7 +207,6 @@ window.searchData = async function() {
         
         if (sId && (!d.studentId || !d.studentId.includes(sId))) match = false;
         
-        // 苗字名前（漢字・ひらがな両対応の簡易版）
         if (sLast) {
             const hiraQuery = toHiragana(sLast);
             if (!((d.lastname && d.lastname.includes(sLast)) || (d.lastnameKana && d.lastnameKana.includes(hiraQuery)))) match = false;
@@ -188,7 +221,6 @@ window.searchData = async function() {
         if (sBirth && d.birth !== sBirth) match = false;
         if (sAddress && (!d.address || !d.address.includes(sAddress))) match = false;
         
-        // キーワード検索（詳細と備考）
         if (sKeyword) {
             const det = (d.details || "").toLowerCase();
             const not = (d.notes || "").toLowerCase();
@@ -198,6 +230,13 @@ window.searchData = async function() {
         if(match) {
             results.push({ docId: doc.id, ...d });
         }
+    });
+
+    // ▼▼ ID順（若い順）にソートする処理 ▼▼
+    results.sort((a, b) => {
+        const idA = a.studentId || "";
+        const idB = b.studentId || "";
+        return idA.localeCompare(idB);
     });
 
     // 検索結果表示
@@ -225,15 +264,15 @@ function parseWiki(text) {
     let html = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     html = html.replace(/== (.*?) ==/g, "<h3>$1</h3>");
     html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-    html = html.replace(/\[\[(.*?)\]\]/g, "<a onclick=\"searchFromLink('$1')\">$1</a>"); // 構文エラーを修正
+    html = html.replace(/\[\[(.*?)\]\]/g, "<a onclick=\"searchFromLink('$1')\">$1</a>");
     html = html.replace(/\n/g, "<br>");
     return html;
 }
 
-// 詳細画面の表示
-window.viewDetail = function(dataStr) {
+// 詳細画面の表示（リンク自動生成のため async を追加）
+window.viewDetail = async function(dataStr) {
     const data = JSON.parse(decodeURIComponent(dataStr));
-    window.currentViewingData = data; // 編集・削除用に保持
+    window.currentViewingData = data;
     
     // ヘッダー情報
     document.getElementById("view-photo").src = data.photoUrl || "";
@@ -248,17 +287,79 @@ window.viewDetail = function(dataStr) {
     document.getElementById("view-age").innerText = calculateAge(data.birth);
     document.getElementById("view-address").innerText = data.address || '-';
     
-    // 家族情報（登録があれば表示）
+    // 家族情報（登録状況を自動判定してリンク化）
     const famContainer = document.getElementById("view-family-container");
     const famList = document.getElementById("view-family-list");
     famList.innerHTML = "";
+    
     if (data.family && data.family.length > 0) {
-        data.family.forEach(f => {
-            const li = document.createElement("li");
-            li.innerText = `【${f.relation}】 ${f.name}`;
-            famList.appendChild(li);
-        });
         famContainer.style.display = "block";
+        famList.innerHTML = "<li>リンク確認中...</li>"; // 一瞬だけ表示されるロード用テキスト
+        
+        try {
+            // DB上のすべての人を取得して名前を照合する
+            const q = query(collection(db, "persons"));
+            const querySnapshot = await getDocs(q);
+            const allPersons = [];
+            querySnapshot.forEach(doc => allPersons.push(doc.data()));
+
+            famList.innerHTML = ""; // ロードテキストを消す
+            
+            data.family.forEach(f => {
+                const lName = f.lastname || f.name || "";
+                const fName = f.firstname || "";
+                const mName = f.maidenname || "";
+                
+                // 表示用の名前を作る
+                let displayName = "";
+                if (mName) {
+                    displayName = `${lName} ${fName} (旧姓: ${mName} ${fName})`;
+                } else {
+                    displayName = `${lName} ${fName}`;
+                }
+                displayName = displayName.trim();
+
+                // リンクするかどうかの判定
+                let hasLink = false;
+                let linkLastname = "";
+                let linkFirstname = "";
+
+                for (let person of allPersons) {
+                    // 自分自身へのリンクは作らない
+                    if (person.studentId && person.studentId === data.studentId) continue;
+                    
+                    const pLast = person.lastname || "";
+                    const pFirst = person.firstname || "";
+                    
+                    // 1. 現在の氏名で一致するか
+                    if (lName && fName && pLast === lName && pFirst === fName) {
+                        hasLink = true; linkLastname = lName; linkFirstname = fName; break;
+                    }
+                    // 2. 旧姓の氏名で一致するか
+                    if (mName && fName && pLast === mName && pFirst === fName) {
+                        hasLink = true; linkLastname = mName; linkFirstname = fName; break;
+                    }
+                    // 3. 過去のデータ用(苗字名前が分かれていない場合)
+                    if (f.name && (pLast + " " + pFirst === f.name || pLast + pFirst === f.name)) {
+                         hasLink = true; linkLastname = pLast; linkFirstname = pFirst; break;
+                    }
+                }
+                
+                const relText = formatRelation(f.relation); // 文字幅を揃える
+                const li = document.createElement("li");
+                
+                // 登録されていたらリンク付きのHTML、されていなければ普通のテキスト
+                if (hasLink) {
+                    li.innerHTML = `【${relText}】 <a onclick="searchFromFamily('${linkLastname}', '${linkFirstname}')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
+                } else {
+                    li.innerHTML = `【${relText}】 ${displayName}`;
+                }
+                famList.appendChild(li);
+            });
+        } catch(e) {
+            console.error("家族リンクの取得に失敗:", e);
+            famList.innerHTML = "<li>データの読み込みに失敗しました</li>";
+        }
     } else {
         famContainer.style.display = "none";
     }
@@ -307,7 +408,10 @@ window.editCurrentData = function() {
     
     document.getElementById("family-list").innerHTML = "";
     if(d.family) {
-        d.family.forEach(f => addFamilyRow(f.relation, f.name));
+        d.family.forEach(f => {
+            // 古いデータ形式の f.name も引き継げるように渡す
+            addFamilyRow(f.relation, f.lastname, f.firstname, f.maidenname, f.name);
+        });
     }
     
     showScreen('register-screen');
@@ -331,10 +435,19 @@ window.deleteCurrentData = async function() {
     }
 }
 
-// リンクからの検索
+// リンク[[]]からの検索
 window.searchFromLink = function(name) {
     clearSearch();
     document.getElementById("search-lastname").value = name;
     showScreen('search-screen');
     searchData();
+}
+
+// 家族一覧のリンクからの検索用（同姓同名対応）
+window.searchFromFamily = function(lastname, firstname) {
+    clearSearch();
+    document.getElementById("search-lastname").value = lastname;
+    document.getElementById("search-firstname").value = firstname;
+    showScreen('search-screen'); // 検索画面に移動
+    searchData(); // 自動で検索を実行
 }
