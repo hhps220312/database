@@ -1,305 +1,76 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>はじめデータベース</title>
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #f4f5f7;
-  }
-
-  header {
-    background: linear-gradient(to right, #333333, #888888);
-    padding: 15px 30px;
-    display: flex;
-    align-items: center;
-    color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-
-  header h1 {
-    margin: 0;
-    font-size: 24px;
-    margin-right: 50px;
-    white-space: nowrap;
-    letter-spacing: 1px;
-  }
-
-  .search-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .search-container input {
-    padding: 10px 15px;
-    font-size: 16px;
-    border: none;
-    border-radius: 4px 0 0 4px;
-    width: 350px;
-    outline: none;
-  }
-
-  .search-container button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border: none;
-    background-color: #e0e0e0;
-    color: #333;
-    cursor: pointer;
-    border-radius: 0 4px 4px 0;
-    font-weight: bold;
-    transition: background-color 0.2s;
-  }
-
-  .search-container button:hover {
-    background-color: #cccccc;
-  }
-
-  #suggest-box {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 350px;
-    background: #ffffff;
-    color: #333;
-    border-radius: 0 0 4px 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    display: none;
-    z-index: 10;
-    max-height: 250px;
-    overflow-y: auto;
-  }
-
-  .suggest-item {
-    padding: 12px 15px;
-    cursor: pointer;
-    border-bottom: 1px solid #eeeeee;
-  }
-
-  .suggest-item:last-child {
-    border-bottom: none;
-  }
-
-  .suggest-item:hover {
-    background-color: #f0f7ff;
-  }
-
-  .highlight {
-    background-color: #ffff00;
-    color: #000;
-    font-weight: bold;
-    border-radius: 2px;
-  }
-
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    box-sizing: border-box;
-  }
-
-  #search-results {
-    background: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 20px;
-    display: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-
-  .result-header {
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #555;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 5px;
-  }
-
-  .result-item {
-    padding: 12px;
-    cursor: pointer;
-    color: #0056b3;
-    font-size: 18px;
-    border-bottom: 1px dashed #eee;
-    transition: background-color 0.2s;
-  }
-
-  .result-item:last-child {
-    border-bottom: none;
-  }
-
-  .result-item:hover {
-    text-decoration: underline;
-    background-color: #f9f9f9;
-  }
-
-  #content-frame {
-    flex: 1;
-    width: 100%;
-    border: 2px solid #ddd;
-    background: #ffffff;
-    border-radius: 8px;
-    display: none;
-    box-sizing: border-box;
-  }
-</style>
+    <meta charset="UTF-8">
+    <title>データベース</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<header>
-  <h1>はじめデータベース</h1>
-  <div class="search-container">
-    <input type="text" id="search-input" placeholder="キーワードで検索..." autocomplete="off">
-    <div id="suggest-box"></div>
-    <button id="search-button">検索</button>
-  </div>
-</header>
-
-<main>
-  <div id="search-results"></div>
-  <iframe id="content-frame" src=""></iframe>
-</main>
-
-<script>
-// データベースの中身（タイトルとURLのみにシンプル化！）
-const database = [
-  { title: "川瀬あお葉", url: "25/2501" },
-  { title: "片岡嬉咲野", url: "https://example.com/?q=片岡嬉咲野" },
-  { title: "片岡利御奈", url: "https://example.com/?q=片岡利御奈" },
-  { title: "佐々木さくら", url: "https://example.com/?q=佐々木さくら" }
-];
-
-const searchInput = document.getElementById("search-input");
-const suggestBox = document.getElementById("suggest-box");
-const searchButton = document.getElementById("search-button");
-const searchResults = document.getElementById("search-results");
-const contentFrame = document.getElementById("content-frame");
-
-// ハイライト関数（変更なし）
-function highlightText(text, query) {
-  if (!query) return text;
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`(${escapedQuery})`, 'gi');
-  return text.replace(regex, '<span class="highlight">$1</span>');
-}
-
-// 予測変換の表示（タイトルのみで検索するように変更）
-searchInput.addEventListener("input", function() {
-  const query = this.value.trim().toLowerCase();
-  
-  if (!query) {
-    suggestBox.style.display = "none";
-    return;
-  }
-  
-  // title のみで検索
-  const matchedData = database.filter(item => 
-    item.title.toLowerCase().includes(query)
-  );
-  
-  if (matchedData.length > 0) {
-    suggestBox.innerHTML = "";
-    matchedData.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "suggest-item";
-      
-      // 表示テキストもタイトルのみ
-      div.innerHTML = highlightText(item.title, query);
-      
-      div.addEventListener("click", function() {
-        searchInput.value = item.title;
-        suggestBox.style.display = "none";
-        doSearch();
-      });
-      
-      suggestBox.appendChild(div);
-    });
-    suggestBox.style.display = "block";
-  } else {
-    suggestBox.style.display = "none";
-  }
-});
-
-searchButton.addEventListener("click", doSearch);
-
-searchInput.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    if (e.isComposing) return;
-    suggestBox.style.display = "none";
-    doSearch();
-  }
-});
-
-document.addEventListener("click", function(e) {
-  if (!e.target.closest('.search-container')) {
-    suggestBox.style.display = "none";
-  }
-});
-
-// 検索を実行するメインの処理
-function doSearch() {
-  const query = searchInput.value.trim().toLowerCase();
-  if (!query) return;
-  
-  suggestBox.style.display = "none";
-  
-  // title のみで検索
-  const results = database.filter(item => 
-    item.title.toLowerCase().includes(query)
-  );
-  
-  searchResults.innerHTML = "";
-  
-  if (results.length === 0) {
-    searchResults.innerHTML = "<div class='result-header'>該当するページが見つかりませんでした。</div>";
-    searchResults.style.display = "block";
-    contentFrame.style.display = "none";
-
-  } else if (results.length === 1) {
-    searchResults.style.display = "none";
-    contentFrame.src = results[0].url;
-    contentFrame.style.display = "block";
-
-  } else {
-    const header = document.createElement("div");
-    header.className = "result-header";
-    header.textContent = `${results.length}件の検索結果があります。クリックしてページを表示してください。`;
-    searchResults.appendChild(header);
-    
-    results.forEach(item => {
-      const itemDiv = document.createElement("div");
-      itemDiv.className = "result-item";
-      itemDiv.textContent = item.title;
-      
-      // ▼▼▼ 修正ポイント ▼▼▼
-      // 一覧から項目をクリックしたとき
-      itemDiv.addEventListener("click", function() {
-        // ① 検索結果一覧（「〇件の検索結果があります…」を含むエリア）を消す！
-        searchResults.style.display = "none";
+    <div class="window">
+        <div class="title-bar">人物データベースシステム</div>
         
-        // ② iframeにURLをセットして、画面いっぱいに表示する！
-        contentFrame.src = item.url;
-        contentFrame.style.display = "block";
-      });
-      // ▲▲▲ 修正ポイント ▲▲▲
-      
-      searchResults.appendChild(itemDiv);
-    });
-    
-    searchResults.style.display = "block";
-    contentFrame.style.display = "none";
-  }
-}
-</script>
+        <!-- ナビゲーション -->
+        <div class="toolbar">
+            <button onclick="showScreen('search-screen')">検索画面</button>
+            <button onclick="showScreen('register-screen')">新規登録</button>
+        </div>
+
+        <!-- 1. 検索画面 -->
+        <div id="search-screen" class="screen">
+            <div class="search-box">
+                <label>苗字:</label> <input type="text" id="search-lastname">
+                <label>性別:</label> 
+                <select id="search-gender">
+                    <option value="">すべて</option>
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+                <button onclick="searchData()">検索実行</button>
+            </div>
+            <div class="result-box">
+                <table id="result-table">
+                    <thead><tr><th>氏名</th><th>性別</th><th>年齢</th><th>詳細</th></tr></thead>
+                    <tbody id="result-body">
+                        <!-- 検索結果がここに入ります -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. 登録画面 -->
+        <div id="register-screen" class="screen" style="display: none;">
+            <div class="form-grid">
+                <label>苗字:</label> <input type="text" id="reg-lastname">
+                <label>名前:</label> <input type="text" id="reg-firstname">
+                <label>性別:</label>
+                <select id="reg-gender">
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                    <option value="その他">その他</option>
+                </select>
+                <label>生年月日:</label> <input type="date" id="reg-birth">
+            </div>
+            
+            <div class="editor-toolbar">
+                <button type="button" onclick="insertText('[[', ']]')">リンク [[]]</button>
+                <button type="button" onclick="insertText('**', '**')">太字</button>
+                <button type="button" onclick="insertText('== ', ' ==')">見出し</button>
+            </div>
+            <textarea id="reg-details" placeholder="詳細や備考を記入..."></textarea>
+            
+            <button class="save-btn" onclick="saveData()">登録する</button>
+        </div>
+
+        <!-- 3. 詳細表示画面 -->
+        <div id="detail-screen" class="screen" style="display: none;">
+            <button onclick="showScreen('search-screen')">← 戻る</button>
+            <h2 id="view-name">名前</h2>
+            <div id="view-basic-info" class="info-box"></div>
+            <div id="view-details" class="wiki-content"></div>
+        </div>
+    </div>
+
+    <!-- Firebaseの読み込み (v9モジュラー版) -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
