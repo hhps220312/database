@@ -144,7 +144,8 @@
             
             <div class="profile-header">
                 <div class="photo-container">
-                    <img id="view-photo" src="" alt="顔写真" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'160\' viewBox=\'0 0 120 160\'%3E%3Crect width=\'120\' height=\'160\' fill=\'%23d4d0c8\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23808080\' font-size=\'14\'%3E写真なし%3C/text%3E%3C/svg%3E'">
+                    <!-- ★ onerror内のSVG画像の高さを160から150（4:5）に変更 -->
+                    <img id="view-photo" src="" alt="顔写真" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'150\' viewBox=\'0 0 120 150\'%3E%3Crect width=\'120\' height=\'150\' fill=\'%23d4d0c8\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23808080\' font-size=\'14\'%3E写真なし%3C/text%3E%3C/svg%3E'">
                 </div>
                 <div class="profile-title">
                     <div id="view-id-rank">ID: -</div>
