@@ -1,0 +1,92 @@
+body {
+    background-color: #008080; /* 昔のWindows風の背景色 */
+    font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", sans-serif;
+    margin: 20px;
+}
+
+/* ウィンドウ全体のデザイン */
+.window {
+    background-color: #d4d0c8; /* クラシックなグレー */
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #404040;
+    border-right: 2px solid #404040;
+    padding: 2px;
+    width: 800px;
+    margin: 0 auto;
+}
+
+.title-bar {
+    background-color: #000080;
+    color: white;
+    font-weight: bold;
+    padding: 3px 5px;
+}
+
+/* ボタン（飛び出し） */
+button {
+    background-color: #d4d0c8;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #404040;
+    border-right: 2px solid #404040;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+button:active {
+    border-top: 2px solid #404040;
+    border-left: 2px solid #404040;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+    padding: 5px 11px 3px 13px; /* 押した時に少しズレる演出 */
+}
+
+/* 入力欄（へこみ） */
+input[type="text"], input[type="date"], select, textarea {
+    border-top: 2px solid #404040;
+    border-left: 2px solid #404040;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+    padding: 3px;
+    font-family: inherit;
+}
+
+/* 画面の切り替え用 */
+.screen {
+    padding: 15px;
+    border: 2px inset #ffffff; /* 画面の内側も少しへこませる */
+    margin-top: 10px;
+    background-color: #d4d0c8;
+}
+
+/* テーブル（一覧表） */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border: 2px solid #808080;
+}
+th, td {
+    border: 1px solid #c0c0c0;
+    padding: 4px;
+}
+th {
+    background-color: #d4d0c8;
+    border-top: 1px solid white;
+    border-left: 1px solid white;
+}
+
+/* Wiki風の装飾用 */
+.wiki-content h3 {
+    border-bottom: 2px solid #808080;
+    font-size: 1.2em;
+    padding-bottom: 2px;
+    margin-top: 20px;
+}
+.wiki-content a {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+}
