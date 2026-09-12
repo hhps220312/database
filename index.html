@@ -12,65 +12,191 @@
         <!-- ナビゲーション -->
         <div class="toolbar">
             <button onclick="showScreen('search-screen')">検索画面</button>
-            <button onclick="showScreen('register-screen')">新規登録</button>
+            <button onclick="showScreen('register-screen')" id="nav-register-btn">新規登録</button>
         </div>
 
         <!-- 1. 検索画面 -->
         <div id="search-screen" class="screen">
             <div class="search-box">
-                <label>苗字:</label> <input type="text" id="search-lastname">
-                <label>性別:</label> 
-                <select id="search-gender">
-                    <option value="">すべて</option>
-                    <option value="男">男</option>
-                    <option value="女">女</option>
-                </select>
-                <button onclick="searchData()">検索実行</button>
+                <div class="search-grid">
+                    <label>ID:</label> <input type="text" id="search-id" placeholder="自由入力">
+                    <label>階級:</label>
+                    <select id="search-rank" class="classic-select">
+                        <option value="">すべて</option>
+                        <option value="青">青</option>
+                        <option value="緑">緑</option>
+                        <option value="赤">赤</option>
+                        <option value="橙">橙</option>
+                    </select>
+                    
+                    <label>苗字:</label> <input type="text" id="search-lastname" placeholder="漢字/ひらがな">
+                    <label>名前:</label> <input type="text" id="search-firstname" placeholder="漢字/ひらがな">
+                    
+                    <label>性別:</label> 
+                    <select id="search-gender" class="classic-select">
+                        <option value="">すべて</option>
+                        <option value="女">女</option>
+                        <option value="男">男</option>
+                        <option value="被験体">被験体</option>
+                    </select>
+                    <label>血液型:</label> 
+                    <select id="search-blood" class="classic-select">
+                        <option value="">すべて</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="O">O</option>
+                        <option value="AB">AB</option>
+                        <option value="不明">不明</option>
+                    </select>
+                    
+                    <label>生年月日:</label> <input type="date" id="search-birth">
+                    <label>入所年月日:</label> <input type="date" id="search-entry">
+                    <label>退所年月日:</label> <input type="date" id="search-exit">
+                    <label>住所:</label> <input type="text" id="search-address">
+                    <label>キーワード:</label> <input type="text" id="search-keyword" placeholder="詳細・備考から検索">
+                </div>
+                <div class="search-actions">
+                    <button onclick="searchData()" class="action-btn">検索実行</button>
+                    <button onclick="clearSearch()" class="action-btn">クリア</button>
+                </div>
             </div>
             <div class="result-box">
                 <table id="result-table">
-                    <thead><tr><th>氏名</th><th>性別</th><th>年齢</th><th>詳細</th></tr></thead>
+                    <thead><tr><th>ID</th><th>階級</th><th>氏名</th><th>性別</th><th>年齢</th><th>操作</th></tr></thead>
                     <tbody id="result-body">
-                        <!-- 検索結果がここに入ります -->
+                        <!-- 検索結果 -->
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- 2. 登録画面 -->
+        <!-- 2. 登録/編集画面 -->
         <div id="register-screen" class="screen" style="display: none;">
+            <input type="hidden" id="edit-doc-id"> <!-- 編集用のID保持 -->
             <div class="form-grid">
-                <label>苗字:</label> <input type="text" id="reg-lastname">
-                <label>名前:</label> <input type="text" id="reg-firstname">
-                <label>性別:</label>
-                <select id="reg-gender">
-                    <option value="男">男</option>
-                    <option value="女">女</option>
-                    <option value="その他">その他</option>
+                <label>ID:</label> <input type="text" id="reg-id">
+                <label>階級:</label>
+                <select id="reg-rank" class="classic-select">
+                    <option value="">選択</option>
+                    <option value="青">青</option>
+                    <option value="緑">緑</option>
+                    <option value="赤">赤</option>
+                    <option value="橙">橙</option>
                 </select>
+
+                <label>苗字:</label> <input type="text" id="reg-lastname">
+                <label>苗字(ふりがな):</label> <input type="text" id="reg-lastname-kana">
+                
+                <label>名前:</label> <input type="text" id="reg-firstname">
+                <label>名前(ふりがな):</label> <input type="text" id="reg-firstname-kana">
+                
+                <label>性別:</label>
+                <select id="reg-gender" class="classic-select">
+                    <option value="女">女</option>
+                    <option value="男">男</option>
+                    <option value="被験体">被験体</option>
+                </select>
+                
+                <label>血液型:</label>
+                <select id="reg-blood" class="classic-select">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="O">O</option>
+                    <option value="AB">AB</option>
+                    <option value="不明">不明</option>
+                </select>
+                
                 <label>生年月日:</label> <input type="date" id="reg-birth">
+                <label>入所年月日:</label> <input type="date" id="reg-entry">
+                <label>退所年月日:</label> <input type="date" id="reg-exit">
+                <label>住所:</label> <input type="text" id="reg-address" style="grid-column: span 3; width: 95%;">
+                
+                <label>顔写真URL:</label> <input type="text" id="reg-photo-url" placeholder="画像のリンクURLを入力" style="grid-column: span 3; width: 95%;">
+            </div>
+
+            <!-- 家族情報 -->
+            <div class="family-section">
+                <h4>家族情報</h4>
+                <div id="family-list"></div>
+                <button type="button" onclick="addFamilyRow()">+ 家族を追加</button>
+            </div>
+
+            <!-- 詳細 -->
+            <div class="editor-section">
+                <h4>詳細</h4>
+                <div class="editor-toolbar">
+                    <button type="button" onclick="insertText('reg-details', '[[', ']]')">リンク [[]]</button>
+                    <button type="button" onclick="insertText('reg-details', '**', '**')">太字</button>
+                    <button type="button" onclick="insertText('reg-details', '== ', ' ==')">見出し</button>
+                </div>
+                <textarea id="reg-details" class="large-textarea" placeholder="詳細を記入..."></textarea>
+            </div>
+
+            <!-- 備考 -->
+            <div class="editor-section">
+                <h4>備考</h4>
+                <div class="editor-toolbar">
+                    <button type="button" onclick="insertText('reg-notes', '[[', ']]')">リンク [[]]</button>
+                    <button type="button" onclick="insertText('reg-notes', '**', '**')">太字</button>
+                </div>
+                <textarea id="reg-notes" class="large-textarea" placeholder="備考を記入..."></textarea>
             </div>
             
-            <div class="editor-toolbar">
-                <button type="button" onclick="insertText('[[', ']]')">リンク [[]]</button>
-                <button type="button" onclick="insertText('**', '**')">太字</button>
-                <button type="button" onclick="insertText('== ', ' ==')">見出し</button>
+            <div class="action-buttons">
+                <button class="save-btn action-btn" onclick="saveData()">保存する</button>
+                <button class="cancel-btn action-btn" onclick="showScreen('search-screen')">キャンセル</button>
             </div>
-            <textarea id="reg-details" placeholder="詳細や備考を記入..."></textarea>
-            
-            <button class="save-btn" onclick="saveData()">登録する</button>
         </div>
 
         <!-- 3. 詳細表示画面 -->
         <div id="detail-screen" class="screen" style="display: none;">
-            <button onclick="showScreen('search-screen')">← 戻る</button>
-            <h2 id="view-name">名前</h2>
-            <div id="view-basic-info" class="info-box"></div>
-            <div id="view-details" class="wiki-content"></div>
+            <div class="detail-toolbar">
+                <button onclick="showScreen('search-screen')">← 戻る</button>
+                <div>
+                    <button id="btn-edit" onclick="editCurrentData()" class="action-btn">編集</button>
+                    <button id="btn-delete" onclick="deleteCurrentData()" class="action-btn" style="color: red;">削除</button>
+                </div>
+            </div>
+            
+            <div class="profile-header">
+                <div class="photo-container">
+                    <img id="view-photo" src="" alt="顔写真" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'160\' viewBox=\'0 0 120 160\'%3E%3Crect width=\'120\' height=\'160\' fill=\'%23d4d0c8\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23808080\' font-size=\'14\'%3E写真なし%3C/text%3E%3C/svg%3E'">
+                </div>
+                <div class="profile-title">
+                    <div id="view-id-rank">ID: - / 階級: -</div>
+                    <div id="view-kana" class="kana-text"></div>
+                    <h2 id="view-name">名前</h2>
+                </div>
+            </div>
+
+            <table class="info-table">
+                <tr><th>性別</th><td id="view-gender"></td><th>血液型</th><td id="view-blood"></td></tr>
+                <tr><th>生年月日</th><td id="view-birth"></td><th>年齢</th><td id="view-age"></td></tr>
+                <tr><th>入所日</th><td id="view-entry"></td><th>退所日</th><td id="view-exit"></td></tr>
+                <tr><th>住所</th><td colspan="3" id="view-address"></td></tr>
+            </table>
+
+            <div id="view-family-container" style="display: none;">
+                <h3 class="section-title">家族情報</h3>
+                <ul id="view-family-list"></ul>
+            </div>
+
+            <div id="view-details-container" style="display: none;">
+                <h3 class="section-title">詳細</h3>
+                <div id="view-details" class="wiki-content"></div>
+            </div>
+
+            <div id="view-notes-container" style="display: none;">
+                <h3 class="section-title">備考</h3>
+                <div id="view-notes" class="wiki-content"></div>
+            </div>
         </div>
     </div>
-
-    <!-- Firebaseの読み込み (v9モジュラー版) -->
+    
+    <!-- データを一時保持するための隠し領域 -->
+    <script>
+        window.currentViewingData = null;
+    </script>
     <script type="module" src="app.js"></script>
 </body>
 </html>

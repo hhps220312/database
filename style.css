@@ -1,18 +1,19 @@
 body {
-    background-color: #008080; /* 昔のWindows風の背景色 */
-    font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", sans-serif;
+    background-color: #008080; 
+    font-family: "MS Mincho", "ＭＳ 明朝", serif; /* 明朝体に変更 */
     margin: 20px;
+    font-size: 14px;
 }
 
-/* ウィンドウ全体のデザイン */
+/* ウィンドウ全体 */
 .window {
-    background-color: #d4d0c8; /* クラシックなグレー */
+    background-color: #d4d0c8;
     border-top: 2px solid #ffffff;
     border-left: 2px solid #ffffff;
     border-bottom: 2px solid #404040;
     border-right: 2px solid #404040;
     padding: 2px;
-    width: 800px;
+    width: 900px;
     margin: 0 auto;
 }
 
@@ -21,6 +22,12 @@ body {
     color: white;
     font-weight: bold;
     padding: 3px 5px;
+    font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", sans-serif; /* タイトルバーはゴシックが見やすい */
+}
+
+.toolbar {
+    padding: 5px;
+    border-bottom: 1px solid #808080;
 }
 
 /* ボタン（飛び出し） */
@@ -33,6 +40,7 @@ button {
     padding: 4px 12px;
     cursor: pointer;
     font-family: inherit;
+    color: black;
 }
 
 button:active {
@@ -40,7 +48,11 @@ button:active {
     border-left: 2px solid #404040;
     border-bottom: 2px solid #ffffff;
     border-right: 2px solid #ffffff;
-    padding: 5px 11px 3px 13px; /* 押した時に少しズレる演出 */
+    padding: 5px 11px 3px 13px;
+}
+
+.action-btn {
+    font-weight: bold;
 }
 
 /* 入力欄（へこみ） */
@@ -51,17 +63,59 @@ input[type="text"], input[type="date"], select, textarea {
     border-right: 2px solid #ffffff;
     padding: 3px;
     font-family: inherit;
+    background-color: white;
 }
 
-/* 画面の切り替え用 */
+/* iOS特有の丸みを消し、クラシックなドロップダウンにする */
+.classic-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 0;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4z" fill="%23000"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 2px center;
+    padding-right: 16px; /* 矢印のスペース */
+}
+
+/* 画面コンテナ */
 .screen {
     padding: 15px;
-    border: 2px inset #ffffff; /* 画面の内側も少しへこませる */
-    margin-top: 10px;
+    border: 2px inset #ffffff;
+    margin-top: 5px;
     background-color: #d4d0c8;
 }
 
-/* テーブル（一覧表） */
+/* 検索・登録グリッド */
+.search-grid, .form-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr 120px 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.search-grid label, .form-grid label {
+    text-align: left;
+}
+
+.search-actions {
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+/* テキストエリア */
+.large-textarea {
+    width: 98%;
+    height: 150px;
+    margin-top: 5px;
+}
+
+.editor-section {
+    margin-top: 15px;
+}
+
+/* テーブル（一覧・詳細） */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -71,6 +125,7 @@ table {
 th, td {
     border: 1px solid #c0c0c0;
     padding: 4px;
+    text-align: left;
 }
 th {
     background-color: #d4d0c8;
@@ -78,15 +133,87 @@ th {
     border-left: 1px solid white;
 }
 
-/* Wiki風の装飾用 */
-.wiki-content h3 {
+.info-table th {
+    width: 15%;
+}
+.info-table td {
+    width: 35%;
+}
+
+/* プロフィールヘッダー */
+.profile-header {
+    display: flex;
+    margin-bottom: 15px;
+    border: 2px inset #ffffff;
+    background: white;
+    padding: 10px;
+}
+
+.photo-container {
+    width: 120px;
+    height: 160px; /* 3:4の比率 */
+    border: 1px solid #808080;
+    margin-right: 20px;
+    background: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.profile-title {
+    flex-grow: 1;
+}
+
+#view-id-rank {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 5px;
+}
+
+.kana-text {
+    font-size: 0.8em;
+    color: #666;
+}
+
+/* Wiki風の装飾 */
+.section-title {
     border-bottom: 2px solid #808080;
     font-size: 1.2em;
     padding-bottom: 2px;
     margin-top: 20px;
+    margin-bottom: 10px;
 }
+
+.wiki-content {
+    background: white;
+    border: 2px inset #ffffff;
+    padding: 10px;
+    min-height: 50px;
+}
+
+.wiki-content h3 {
+    border-bottom: 1px solid #c0c0c0;
+    font-size: 1.1em;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
 .wiki-content a {
     color: blue;
     text-decoration: underline;
     cursor: pointer;
+}
+
+/* 家族情報リスト */
+.family-row {
+    margin-bottom: 5px;
+}
+.family-row input {
+    margin-right: 5px;
 }
