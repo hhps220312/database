@@ -41,6 +41,7 @@ button {
     cursor: pointer;
     font-family: inherit;
     color: black;
+    vertical-align: middle; /* ★追加：クリック時に画面全体が下にズレるのを防ぐ */
 }
 
 button:active {
@@ -151,7 +152,7 @@ th {
 
 .photo-container {
     width: 120px;
-    height: 160px; /* 3:4の比率 */
+    height: 150px; /* ★4:5の比率に変更 */
     border: 1px solid #808080;
     margin-right: 20px;
     background: #e0e0e0;
