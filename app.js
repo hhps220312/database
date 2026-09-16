@@ -39,11 +39,9 @@ window.changeMode = function(mode) {
     if (mode === 'person') {
         document.body.classList.remove('mode-other');
         document.body.classList.add('mode-person');
-        document.getElementById("nav-register-btn-text").innerText = "新規登録(人)";
     } else {
         document.body.classList.remove('mode-person');
         document.body.classList.add('mode-other');
-        document.getElementById("nav-register-btn-text").innerText = "新規登録(人以外)";
     }
 }
 
@@ -64,10 +62,9 @@ function clearForm() {
     document.querySelectorAll('#register-screen select').forEach(el => el.selectedIndex = 0);
     document.getElementById("family-list").innerHTML = "";
     
-    if (window.currentMode === 'person') {
-        document.getElementById("nav-register-btn-text").innerText = "新規登録(人)";
-    } else {
-        document.getElementById("nav-register-btn-text").innerText = "新規登録(人以外)";
+    const saveBtn = document.querySelector(".save-btn");
+    if (saveBtn) {
+        saveBtn.innerText = "保存する";
     }
 }
 
@@ -162,6 +159,14 @@ window.addFamilyRow = function(relation = "", customRelation = "", lastname = ""
 // 保存
 window.saveData = async function() {
     const docId = document.getElementById("edit-doc-id").value;
+    const saveBtn = document.querySelector(".save-btn");
+    const originalText = saveBtn ? saveBtn.innerText : "保存する";
+    
+    // 連打防止のロック
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerText = "通信中...";
+    }
     
     // 関連データの収集
     const familyData = [];
@@ -215,7 +220,13 @@ window.saveData = async function() {
         searchData();
     } catch (e) {
         console.error("エラー: ", e);
-        alert("保存に失敗しました。");
+        alert("保存に失敗しました。時間をおいて再試行してください。");
+    } finally {
+        // ロック解除
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = originalText;
+        }
     }
 }
 
@@ -227,6 +238,7 @@ window.clearSearch = function() {
 }
 
 function toHiragana(str) {
+    if (!str) return "";
     return str.replace(/[ァ-ン]/g, function(s) {
        return String.fromCharCode(s.charCodeAt(0) - 0x60);
     });
@@ -237,115 +249,142 @@ window.searchResults = [];
 
 // 検索実行
 window.searchData = async function() {
-    const sId = document.getElementById("search-id").value;
-    const sLast = document.getElementById("search-lastname").value;
-    const sFirst = document.getElementById("search-firstname").value;
-    const sOther = document.getElementById("search-other-name").value;
-    
-    const sGender = document.getElementById("search-gender").value;
-    const sBlood = document.getElementById("search-blood").value;
-    const sBirth = document.getElementById("search-birth").value;
-    const sAddress = document.getElementById("search-address").value;
-    const sKeyword = document.getElementById("search-keyword").value.toLowerCase();
-    
-    const q = query(collection(db, "persons"));
-    const querySnapshot = await getDocs(q);
-    
-    const thead = document.querySelector("#result-table thead");
-    const tbody = document.getElementById("result-body");
-    tbody.innerHTML = ""; 
+    // 検索ボタンを取得してロック状態にする
+    let execBtn = null;
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        if (btn.innerText === "検索実行" || btn.innerText === "検索中...") execBtn = btn;
+    });
 
-    if (window.currentMode === 'person') {
-        thead.innerHTML = "<tr><th>ID</th><th>氏名</th><th>性別</th><th>年齢</th><th>操作</th></tr>";
-    } else {
-        thead.innerHTML = "<tr><th>ID</th><th>名称</th><th>-</th><th>-</th><th>操作</th></tr>";
+    if (execBtn) {
+        execBtn.disabled = true;
+        execBtn.innerText = "検索中...";
     }
 
-    let results = [];
-    querySnapshot.forEach((doc) => {
-        const d = doc.data();
-        const type = d.type || 'person'; 
-        if (type !== window.currentMode) return; 
+    const tbody = document.getElementById("result-body");
+    // フリーズ対策：ロード中表示を出して、裏側でデータ処理を進める
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>検索中... データを受信しています</td></tr>";
+
+    try {
+        const sId = document.getElementById("search-id").value;
+        const sLast = document.getElementById("search-lastname").value;
+        const sFirst = document.getElementById("search-firstname").value;
+        const sOther = document.getElementById("search-other-name").value;
         
-        let match = true;
-        const stId = String(d.studentId || "");
-        const lName = String(d.lastname || "");
-        const lKana = String(d.lastnameKana || "");
-        const fName = String(d.firstname || "");
-        const fKana = String(d.firstnameKana || "");
-        const oName = String(d.otherName || "");
-        const oKana = String(d.otherNameKana || "");
-        const gender = String(d.gender || "");
-        const blood = String(d.blood || "");
-        const birth = String(d.birth || "");
-        const addr = String(d.address || "");
-        const det = String(d.details || "").toLowerCase();
-        const not = String(d.notes || "").toLowerCase();
+        const sGender = document.getElementById("search-gender").value;
+        const sBlood = document.getElementById("search-blood").value;
+        const sBirth = document.getElementById("search-birth").value;
+        const sAddress = document.getElementById("search-address").value;
+        const sKeyword = document.getElementById("search-keyword").value.toLowerCase();
         
-        if (sId && !stId.includes(sId)) match = false;
+        const q = query(collection(db, "persons"));
+        const querySnapshot = await getDocs(q); // ここで通信
         
+        const thead = document.querySelector("#result-table thead");
+        tbody.innerHTML = ""; // 受信完了したのでテーブルを一回空にする
+
         if (window.currentMode === 'person') {
-            if (sLast) {
-                const hiraQuery = toHiragana(sLast);
-                if (!(lName.includes(sLast) || lKana.includes(hiraQuery))) match = false;
-            }
-            if (sFirst) {
-                const hiraQuery = toHiragana(sFirst);
-                if (!(fName.includes(sFirst) || fKana.includes(hiraQuery))) match = false;
-            }
-            if (sGender && gender !== sGender) match = false;
-            if (sBlood && blood !== sBlood) match = false;
-            if (sBirth && birth !== sBirth) match = false;
+            thead.innerHTML = "<tr><th>ID</th><th>氏名</th><th>性別</th><th>年齢</th><th>操作</th></tr>";
         } else {
-            if (sOther) {
-                const hiraQuery = toHiragana(sOther);
-                if (!(oName.includes(sOther) || oKana.includes(hiraQuery))) match = false;
+            thead.innerHTML = "<tr><th>ID</th><th>名称</th><th>-</th><th>-</th><th>操作</th></tr>";
+        }
+
+        let results = [];
+        querySnapshot.forEach((doc) => {
+            const d = doc.data();
+            const type = d.type || 'person'; 
+            if (type !== window.currentMode) return; 
+            
+            let match = true;
+            const stId = String(d.studentId || "");
+            const lName = String(d.lastname || "");
+            const lKana = String(d.lastnameKana || "");
+            const fName = String(d.firstname || "");
+            const fKana = String(d.firstnameKana || "");
+            const oName = String(d.otherName || "");
+            const oKana = String(d.otherNameKana || "");
+            const gender = String(d.gender || "");
+            const blood = String(d.blood || "");
+            const birth = String(d.birth || "");
+            const addr = String(d.address || "");
+            const det = String(d.details || "").toLowerCase();
+            const not = String(d.notes || "").toLowerCase();
+            
+            if (sId && !stId.includes(sId)) match = false;
+            
+            if (window.currentMode === 'person') {
+                if (sLast) {
+                    const hiraQuery = toHiragana(sLast);
+                    if (!(lName.includes(sLast) || lKana.includes(hiraQuery))) match = false;
+                }
+                if (sFirst) {
+                    const hiraQuery = toHiragana(sFirst);
+                    if (!(fName.includes(sFirst) || fKana.includes(hiraQuery))) match = false;
+                }
+                if (sGender && gender !== sGender) match = false;
+                if (sBlood && blood !== sBlood) match = false;
+                if (sBirth && birth !== sBirth) match = false;
+            } else {
+                if (sOther) {
+                    const hiraQuery = toHiragana(sOther);
+                    if (!(oName.includes(sOther) || oKana.includes(hiraQuery))) match = false;
+                }
             }
+            
+            if (sAddress && !addr.includes(sAddress)) match = false;
+            if (sKeyword) {
+                if (!det.includes(sKeyword) && !not.includes(sKeyword)) match = false;
+            }
+
+            if(match) {
+                results.push({ docId: doc.id, ...d });
+            }
+        });
+
+        results.sort((a, b) => {
+            const idA = String(a.studentId || "");
+            const idB = String(b.studentId || "");
+            return idA.localeCompare(idB);
+        });
+
+        window.searchResults = results; 
+
+        results.forEach((d, index) => {
+            const tr = document.createElement("tr");
+            if (window.currentMode === 'person') {
+                const age = calculateAge(d.birth);
+                tr.innerHTML = `
+                    <td style="font-weight:bold;">${d.studentId || '-'}</td>
+                    <td>${d.lastname || ''} ${d.firstname || ''}</td>
+                    <td>${d.gender || '-'}</td>
+                    <td>${age}</td>
+                    <td><button onclick="viewDetail(${index})">表示</button></td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td style="font-weight:bold;">${d.studentId || '-'}</td>
+                    <td>${d.otherName || ''}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><button onclick="viewDetail(${index})">表示</button></td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
+
+        if(results.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>該当するデータがありません</td></tr>";
         }
-        
-        if (sAddress && !addr.includes(sAddress)) match = false;
-        if (sKeyword) {
-            if (!det.includes(sKeyword) && !not.includes(sKeyword)) match = false;
+
+    } catch (error) {
+        // エラー発生時の処理（画面がフリーズしたままになるのを防ぐ）
+        console.error("検索エラー:", error);
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red; font-weight:bold;'>通信エラーが発生しました。<br>リロードするか、少し時間をおいて再度お試しください。</td></tr>";
+    } finally {
+        // 全ての処理が終わる、またはエラーになったら必ずボタンのロックを解除
+        if (execBtn) {
+            execBtn.disabled = false;
+            execBtn.innerText = "検索実行";
         }
-
-        if(match) {
-            results.push({ docId: doc.id, ...d });
-        }
-    });
-
-    results.sort((a, b) => {
-        const idA = String(a.studentId || "");
-        const idB = String(b.studentId || "");
-        return idA.localeCompare(idB);
-    });
-
-    window.searchResults = results; 
-
-    results.forEach((d, index) => {
-        const tr = document.createElement("tr");
-        if (window.currentMode === 'person') {
-            const age = calculateAge(d.birth);
-            tr.innerHTML = `
-                <td style="font-weight:bold;">${d.studentId || '-'}</td>
-                <td>${d.lastname || ''} ${d.firstname || ''}</td>
-                <td>${d.gender || '-'}</td>
-                <td>${age}</td>
-                <td><button onclick="viewDetail(${index})">表示</button></td>
-            `;
-        } else {
-            tr.innerHTML = `
-                <td style="font-weight:bold;">${d.studentId || '-'}</td>
-                <td>${d.otherName || ''}</td>
-                <td>-</td>
-                <td>-</td>
-                <td><button onclick="viewDetail(${index})">表示</button></td>
-            `;
-        }
-        tbody.appendChild(tr);
-    });
-
-    if(results.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='5'>該当するデータがありません</td></tr>";
     }
 }
 
@@ -447,7 +486,11 @@ window.editCurrentData = function() {
     
     changeMode(d.type || 'person');
     
-    document.getElementById("nav-register-btn-text").innerText = "編集中...";
+    const saveBtn = document.querySelector(".save-btn");
+    if (saveBtn) {
+        saveBtn.innerText = "更新する";
+    }
+    
     document.getElementById("edit-doc-id").value = d.docId;
     
     document.getElementById("reg-id").value = d.studentId || "";
