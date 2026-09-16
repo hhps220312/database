@@ -1,6 +1,6 @@
 body {
     background-color: #008080; 
-    font-family: "MS Mincho", "ＭＳ 明朝", serif; /* 明朝体に変更 */
+    font-family: "MS Mincho", "ＭＳ 明朝", serif; 
     margin: 20px;
     font-size: 14px;
 }
@@ -22,7 +22,7 @@ body {
     color: white;
     font-weight: bold;
     padding: 3px 5px;
-    font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", sans-serif; /* タイトルバーはゴシックが見やすい */
+    font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", sans-serif;
 }
 
 .toolbar {
@@ -30,7 +30,7 @@ body {
     border-bottom: 1px solid #808080;
 }
 
-/* ボタン（飛び出し） */
+/* ボタン */
 button {
     background-color: #d4d0c8;
     border-top: 2px solid #ffffff;
@@ -41,7 +41,7 @@ button {
     cursor: pointer;
     font-family: inherit;
     color: black;
-    vertical-align: middle; /* ★追加：クリック時に画面全体が下にズレるのを防ぐ */
+    vertical-align: middle; 
 }
 
 button:active {
@@ -56,7 +56,7 @@ button:active {
     font-weight: bold;
 }
 
-/* 入力欄（へこみ） */
+/* 入力欄 */
 input[type="text"], input[type="date"], select, textarea {
     border-top: 2px solid #404040;
     border-left: 2px solid #404040;
@@ -67,7 +67,6 @@ input[type="text"], input[type="date"], select, textarea {
     background-color: white;
 }
 
-/* iOS特有の丸みを消し、クラシックなドロップダウンにする */
 .classic-select {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -76,10 +75,9 @@ input[type="text"], input[type="date"], select, textarea {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4z" fill="%23000"/></svg>');
     background-repeat: no-repeat;
     background-position: right 2px center;
-    padding-right: 16px; /* 矢印のスペース */
+    padding-right: 16px; 
 }
 
-/* 画面コンテナ */
 .screen {
     padding: 15px;
     border: 2px inset #ffffff;
@@ -87,7 +85,6 @@ input[type="text"], input[type="date"], select, textarea {
     background-color: #d4d0c8;
 }
 
-/* 検索・登録グリッド */
 .search-grid, .form-grid {
     display: grid;
     grid-template-columns: 120px 1fr 120px 1fr;
@@ -105,7 +102,6 @@ input[type="text"], input[type="date"], select, textarea {
     margin-bottom: 10px;
 }
 
-/* テキストエリア */
 .large-textarea {
     width: 98%;
     height: 150px;
@@ -116,7 +112,6 @@ input[type="text"], input[type="date"], select, textarea {
     margin-top: 15px;
 }
 
-/* テーブル（一覧・詳細） */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -141,7 +136,6 @@ th {
     width: 35%;
 }
 
-/* プロフィールヘッダー */
 .profile-header {
     display: flex;
     margin-bottom: 15px;
@@ -152,7 +146,7 @@ th {
 
 .photo-container {
     width: 120px;
-    height: 150px; /* ★4:5の比率に変更 */
+    height: 150px;
     border: 1px solid #808080;
     margin-right: 20px;
     background: #e0e0e0;
@@ -182,7 +176,6 @@ th {
     color: #666;
 }
 
-/* Wiki風の装飾 */
 .section-title {
     border-bottom: 2px solid #808080;
     font-size: 1.2em;
@@ -211,10 +204,24 @@ th {
     cursor: pointer;
 }
 
-/* 家族情報リスト */
 .family-row {
     margin-bottom: 5px;
 }
 .family-row input {
     margin-right: 5px;
+}
+
+
+/* =========================================
+   ここから追加分: 人と人以外の表示切替用設定 
+========================================= */
+
+/* 人モードの時は、人以外用の項目を消す */
+body.mode-person .other-only {
+    display: none !important;
+}
+
+/* 人以外モードの時は、人用の項目を消す */
+body.mode-other .person-only {
+    display: none !important;
 }
