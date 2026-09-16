@@ -31,6 +31,11 @@ function calculateAge(birthDateString) {
 window.currentMode = 'person'; // デフォルト
 window.changeMode = function(mode) {
     window.currentMode = mode;
+    
+    // モード切替時に検索結果と入力フォームをクリアする
+    clearSearch();
+    clearForm();
+
     if (mode === 'person') {
         document.body.classList.remove('mode-other');
         document.body.classList.add('mode-person');
@@ -78,7 +83,7 @@ window.insertText = function(targetId, prefix, suffix) {
     textarea.selectionEnd = start + prefix.length;
 }
 
-// 関連（旧 家族情報）のカスタム入力表示切替
+// 関連のカスタム入力表示切替
 window.toggleCustomRelation = function(selectElem) {
     const row = selectElem.closest('.family-row');
     const customRel = row.querySelector('.family-custom-relation');
@@ -120,7 +125,7 @@ window.addFamilyRow = function(relation = "", customRelation = "", lastname = ""
     div.className = "family-row";
     div.innerHTML = `
         <select class="classic-select family-relation" onchange="toggleCustomRelation(this)">
-            <option value="">続柄・関係</option>
+            <option value="" disabled hidden ${!relation ? 'selected' : ''}>続柄・関係</option>
             <option value="父" ${relation==='父'?'selected':''}>父</option>
             <option value="母" ${relation==='母'?'selected':''}>母</option>
             <option value="兄" ${relation==='兄'?'selected':''}>兄</option>
@@ -173,10 +178,9 @@ window.saveData = async function() {
     });
 
     const data = {
-        type: window.currentMode, // 'person' or 'other'
+        type: window.currentMode, 
         studentId: document.getElementById("reg-id").value,
         address: document.getElementById("reg-address").value,
-        photoUrl: document.getElementById("reg-photo-url").value,
         family: familyData,
         details: document.getElementById("reg-details").value,
         notes: document.getElementById("reg-notes").value,
@@ -191,6 +195,7 @@ window.saveData = async function() {
         data.gender = document.getElementById("reg-gender").value;
         data.blood = document.getElementById("reg-blood").value;
         data.birth = document.getElementById("reg-birth").value;
+        data.photoUrl = document.getElementById("reg-photo-url").value;
     } else {
         data.otherName = document.getElementById("reg-other-name").value;
         data.otherNameKana = document.getElementById("reg-other-name-kana").value;
@@ -227,7 +232,7 @@ function toHiragana(str) {
     });
 }
 
-// グローバルに検索結果を保持（フリーズバグ対策）
+// グローバルに検索結果を保持
 window.searchResults = [];
 
 // 検索実行
@@ -259,8 +264,8 @@ window.searchData = async function() {
     let results = [];
     querySnapshot.forEach((doc) => {
         const d = doc.data();
-        const type = d.type || 'person'; // 過去のデータはpersonとする
-        if (type !== window.currentMode) return; // モードが違う場合はスキップ
+        const type = d.type || 'person'; 
+        if (type !== window.currentMode) return; 
         
         let match = true;
         const stId = String(d.studentId || "");
@@ -308,14 +313,13 @@ window.searchData = async function() {
         }
     });
 
-    // IDでソート
     results.sort((a, b) => {
         const idA = String(a.studentId || "");
         const idB = String(b.studentId || "");
         return idA.localeCompare(idB);
     });
 
-    window.searchResults = results; // 結果を保存（フリーズ対策）
+    window.searchResults = results; 
 
     results.forEach((d, index) => {
         const tr = document.createElement("tr");
@@ -356,7 +360,7 @@ function parseWiki(text) {
     return html;
 }
 
-// 詳細画面の表示（フリーズバグ対策でindexを受け取る）
+// 詳細画面の表示
 window.viewDetail = async function(index) {
     const data = window.searchResults[index];
     if (!data) return;
@@ -364,10 +368,10 @@ window.viewDetail = async function(index) {
     window.currentViewingData = data;
     const type = data.type || 'person';
     
-    document.getElementById("view-photo").src = data.photoUrl || "";
     document.getElementById("view-id-rank").innerText = `ID: ${data.studentId || '-'}`;
     
     if (type === 'person') {
+        document.getElementById("view-photo").src = data.photoUrl || "";
         document.getElementById("view-kana").innerText = `${data.lastnameKana || ''} ${data.firstnameKana || ''}`;
         document.getElementById("view-name").innerText = `${data.lastname || ''} ${data.firstname || ''}`;
         document.getElementById("view-gender").innerText = data.gender || '-';
@@ -391,75 +395,28 @@ window.viewDetail = async function(index) {
     
     if (data.family && Array.isArray(data.family) && data.family.length > 0) {
         famContainer.style.display = "block";
-        famList.innerHTML = "<li>リンク確認中...</li>";
+        famList.innerHTML = "";
         
-        try {
-            const q = query(collection(db, "persons"));
-            const querySnapshot = await getDocs(q);
-            const allPersons = [];
-            querySnapshot.forEach(doc => allPersons.push(doc.data()));
+        data.family.forEach(f => {
+            // 表示用の関係性
+            let relText = "";
+            if (f.relation === 'その他' || f.relation === '人以外') {
+                relText = f.customRelation || f.relation;
+            } else {
+                relText = f.relation || '関連';
+            }
 
-            famList.innerHTML = "";
-            
-            data.family.forEach(f => {
-                let hasLink = false;
-                let linkMode = 'person';
-                let linkLastname = "";
-                let linkFirstname = "";
-                let linkOtherName = "";
-
-                // リンク先を探す
-                for (let person of allPersons) {
-                    if (person.studentId && person.studentId === data.studentId) continue;
-                    const pType = person.type || 'person';
-                    
-                    if (f.relation === '人以外') {
-                        const pName = person.otherName || "";
-                        if (pType === 'other' && f.otherName && pName === f.otherName) {
-                            hasLink = true; linkMode = 'other'; linkOtherName = pName; break;
-                        }
-                    } else {
-                        const pLast = person.lastname || "";
-                        const pFirst = person.firstname || "";
-                        if (pType === 'person' && f.lastname && f.firstname && pLast === f.lastname && pFirst === f.firstname) {
-                            hasLink = true; linkMode = 'person'; linkLastname = f.lastname; linkFirstname = f.firstname; break;
-                        }
-                    }
-                }
-                
-                // 表示用の関係性
-                let relText = "";
-                if (f.relation === 'その他' || f.relation === '人以外') {
-                    relText = f.customRelation || f.relation;
-                } else {
-                    relText = f.relation || '関連'; // 謎の空白を削除
-                }
-
-                // 表示用の名前
-                let displayName = "";
-                if (f.relation === '人以外') {
-                    displayName = f.otherName || "";
-                } else {
-                    // 旧姓は廃止したため苗字・名前のみ
-                    displayName = `${f.lastname || ''} ${f.firstname || ''}`.trim();
-                }
-
-                const li = document.createElement("li");
-                if (hasLink) {
-                    if (linkMode === 'person') {
-                        li.innerHTML = `【${relText}】 <a onclick="searchFromFamily('${linkLastname}', '${linkFirstname}', 'person')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
-                    } else {
-                        li.innerHTML = `【${relText}】 <a onclick="searchFromFamily('${linkOtherName}', '', 'other')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
-                    }
-                } else {
-                    li.innerHTML = `【${relText}】 ${displayName}`;
-                }
-                famList.appendChild(li);
-            });
-        } catch(e) {
-            console.error("リンクの取得に失敗:", e);
-            famList.innerHTML = "<li>データの読み込みに失敗しました</li>";
-        }
+            // 無条件でリンクを生成
+            const li = document.createElement("li");
+            if (f.relation === '人以外') {
+                const displayName = f.otherName || "";
+                li.innerHTML = `【${relText}】 <a onclick="searchFromFamily('${displayName}', '', 'other')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
+            } else {
+                const displayName = `${f.lastname || ''} ${f.firstname || ''}`.trim();
+                li.innerHTML = `【${relText}】 <a onclick="searchFromFamily('${f.lastname || ''}', '${f.firstname || ''}', 'person')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
+            }
+            famList.appendChild(li);
+        });
     } else {
         famContainer.style.display = "none";
     }
@@ -495,7 +452,6 @@ window.editCurrentData = function() {
     
     document.getElementById("reg-id").value = d.studentId || "";
     document.getElementById("reg-address").value = d.address || "";
-    document.getElementById("reg-photo-url").value = d.photoUrl || "";
     document.getElementById("reg-details").value = d.details || "";
     document.getElementById("reg-notes").value = d.notes || "";
     
@@ -504,9 +460,10 @@ window.editCurrentData = function() {
         document.getElementById("reg-lastname-kana").value = d.lastnameKana || "";
         document.getElementById("reg-firstname").value = d.firstname || "";
         document.getElementById("reg-firstname-kana").value = d.firstnameKana || "";
-        document.getElementById("reg-gender").value = d.gender || "女";
-        document.getElementById("reg-blood").value = d.blood || "";
+        document.getElementById("reg-gender").value = d.gender || "不明";
+        document.getElementById("reg-blood").value = d.blood || "不明";
         document.getElementById("reg-birth").value = d.birth || "";
+        document.getElementById("reg-photo-url").value = d.photoUrl || "";
     } else {
         document.getElementById("reg-other-name").value = d.otherName || "";
         document.getElementById("reg-other-name-kana").value = d.otherNameKana || "";
@@ -515,7 +472,6 @@ window.editCurrentData = function() {
     document.getElementById("family-list").innerHTML = "";
     if(d.family && Array.isArray(d.family)) {
         d.family.forEach(f => {
-            // 下位互換で oldName等があれば lastnameに入れるなどしない（現状フォーマット優先）
             addFamilyRow(f.relation, f.customRelation, f.lastname, f.firstname, f.otherName);
         });
     }
@@ -545,17 +501,12 @@ window.deleteCurrentData = async function() {
 // リンクテキスト（[[文字列]]）をクリックした時
 window.searchFromLink = function(text) {
     clearSearch();
-    // 半角スペースがあれば、姓名に分割して「人」として検索
     if (text.includes(" ")) {
         const parts = text.split(" ");
         changeMode('person');
         document.getElementById("search-lastname").value = parts[0];
-        // 3つ以上スペースがある場合も考慮して、2つ目以降を繋げる
         document.getElementById("search-firstname").value = parts.slice(1).join(" ");
     } else {
-        // スペースがない場合は「人以外」の名称の可能性が高いが、
-        // 苗字だけの検索の可能性もあるため、とりあえず両方の入力欄に入れておく。
-        // モードは「人」を維持（お好みの場合は other に切り替えてもOK）
         changeMode('person');
         document.getElementById("search-lastname").value = text;
         document.getElementById("search-other-name").value = text; 
