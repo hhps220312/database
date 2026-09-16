@@ -28,11 +28,10 @@ function calculateAge(birthDateString) {
 }
 
 // 人 or 人以外 モード切替
-window.currentMode = 'person'; // デフォルト
+window.currentMode = 'person'; 
 window.changeMode = function(mode) {
     window.currentMode = mode;
     
-    // モード切替時に検索結果と入力フォームをクリアする
     clearSearch();
     clearForm();
 
@@ -162,13 +161,11 @@ window.saveData = async function() {
     const saveBtn = document.querySelector(".save-btn");
     const originalText = saveBtn ? saveBtn.innerText : "保存する";
     
-    // 連打防止のロック
     if (saveBtn) {
         saveBtn.disabled = true;
         saveBtn.innerText = "通信中...";
     }
     
-    // 関連データの収集
     const familyData = [];
     document.querySelectorAll(".family-row").forEach(row => {
         const relation = row.querySelector(".family-relation").value;
@@ -222,7 +219,6 @@ window.saveData = async function() {
         console.error("エラー: ", e);
         alert("保存に失敗しました。時間をおいて再試行してください。");
     } finally {
-        // ロック解除
         if (saveBtn) {
             saveBtn.disabled = false;
             saveBtn.innerText = originalText;
@@ -244,12 +240,16 @@ function toHiragana(str) {
     });
 }
 
-// グローバルに検索結果を保持
+// グローバルに検索結果と検索中フラグを保持
 window.searchResults = [];
+window.isSearching = false; // ★フリーズ防止用のロック
 
 // 検索実行
 window.searchData = async function() {
-    // 検索ボタンを取得してロック状態にする
+    // すでに検索中なら処理をキャンセル（連打対策）
+    if (window.isSearching) return;
+    window.isSearching = true;
+
     let execBtn = null;
     document.querySelectorAll('.action-btn').forEach(btn => {
         if (btn.innerText === "検索実行" || btn.innerText === "検索中...") execBtn = btn;
@@ -261,7 +261,6 @@ window.searchData = async function() {
     }
 
     const tbody = document.getElementById("result-body");
-    // フリーズ対策：ロード中表示を出して、裏側でデータ処理を進める
     tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>検索中... データを受信しています</td></tr>";
 
     try {
@@ -277,10 +276,15 @@ window.searchData = async function() {
         const sKeyword = document.getElementById("search-keyword").value.toLowerCase();
         
         const q = query(collection(db, "persons"));
-        const querySnapshot = await getDocs(q); // ここで通信
+        
+        // ★ 8秒間返事がなければ強制的にエラーにする（無限フリーズ防止）
+        const querySnapshot = await Promise.race([
+            getDocs(q),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000))
+        ]);
         
         const thead = document.querySelector("#result-table thead");
-        tbody.innerHTML = ""; // 受信完了したのでテーブルを一回空にする
+        tbody.innerHTML = ""; 
 
         if (window.currentMode === 'person') {
             thead.innerHTML = "<tr><th>ID</th><th>氏名</th><th>性別</th><th>年齢</th><th>操作</th></tr>";
@@ -376,11 +380,10 @@ window.searchData = async function() {
         }
 
     } catch (error) {
-        // エラー発生時の処理（画面がフリーズしたままになるのを防ぐ）
         console.error("検索エラー:", error);
-        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red; font-weight:bold;'>通信エラーが発生しました。<br>リロードするか、少し時間をおいて再度お試しください。</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red; font-weight:bold;'>通信がタイムアウトしたか、エラーが発生しました。<br>再度検索ボタンを押すか、リロードをお試しください。</td></tr>";
     } finally {
-        // 全ての処理が終わる、またはエラーになったら必ずボタンのロックを解除
+        window.isSearching = false; // ロック解除
         if (execBtn) {
             execBtn.disabled = false;
             execBtn.innerText = "検索実行";
@@ -420,10 +423,7 @@ window.viewDetail = async function(index) {
     } else {
         document.getElementById("view-kana").innerText = data.otherNameKana || '';
         document.getElementById("view-name").innerText = data.otherName || '';
-        document.getElementById("view-gender").innerText = '-';
-        document.getElementById("view-blood").innerText = '-';
-        document.getElementById("view-birth").innerText = '-';
-        document.getElementById("view-age").innerText = '-';
+        // 性別等の表示はCSS(person-only)で隠れるため中身の設定は省略可能
     }
     
     document.getElementById("view-address").innerText = data.address || '-';
@@ -437,22 +437,24 @@ window.viewDetail = async function(index) {
         famList.innerHTML = "";
         
         data.family.forEach(f => {
-            // 表示用の関係性
+            // ★【人以外】等の表示をスマートにする処理
             let relText = "";
-            if (f.relation === 'その他' || f.relation === '人以外') {
-                relText = f.customRelation || f.relation;
+            if (f.relation === '人以外') {
+                // 人以外で入力欄に文字があれば【会社】のようにし、何もなければ空にする
+                relText = f.customRelation ? `【${f.customRelation}】 ` : "";
+            } else if (f.relation === 'その他') {
+                relText = `【${f.customRelation || f.relation}】 `;
             } else {
-                relText = f.relation || '関連';
+                relText = `【${f.relation || '関連'}】 `;
             }
 
-            // 無条件でリンクを生成
             const li = document.createElement("li");
             if (f.relation === '人以外') {
                 const displayName = f.otherName || "";
-                li.innerHTML = `【${relText}】 <a onclick="searchFromFamily('${displayName}', '', 'other')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
+                li.innerHTML = `${relText}<a onclick="searchFromFamily('${displayName}', '', 'other')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
             } else {
                 const displayName = `${f.lastname || ''} ${f.firstname || ''}`.trim();
-                li.innerHTML = `【${relText}】 <a onclick="searchFromFamily('${f.lastname || ''}', '${f.firstname || ''}', 'person')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
+                li.innerHTML = `${relText}<a onclick="searchFromFamily('${f.lastname || ''}', '${f.firstname || ''}', 'person')" style="cursor:pointer; color:blue; text-decoration:underline;">${displayName}</a>`;
             }
             famList.appendChild(li);
         });
