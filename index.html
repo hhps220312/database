@@ -170,8 +170,9 @@
             </div>
 
             <table class="info-table">
-                <tr><th>性別</th><td id="view-gender"></td><th>血液型</th><td id="view-blood"></td></tr>
-                <tr><th>生年月日</th><td id="view-birth"></td><th>年齢</th><td id="view-age"></td></tr>
+                <!-- ★ここが今回の修正箇所: person-onlyクラスを付与 -->
+                <tr class="person-only"><th>性別</th><td id="view-gender"></td><th>血液型</th><td id="view-blood"></td></tr>
+                <tr class="person-only"><th>生年月日</th><td id="view-birth"></td><th>年齢</th><td id="view-age"></td></tr>
                 <tr><th>住所</th><td colspan="3" id="view-address"></td></tr>
             </table>
 
