@@ -5,11 +5,11 @@
     <title>データベース</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="mode-person"> <!-- デフォルトは人モード -->
+<body class="mode-person">
     <div class="window">
         <div class="title-bar">データベースシステム</div>
         
-        <!-- ナビゲーション（4つのボタンに分割） -->
+        <!-- ナビゲーション -->
         <div class="toolbar">
             <button onclick="changeMode('person'); showScreen('search-screen')">検索(人)</button>
             <button onclick="changeMode('other'); showScreen('search-screen')">検索(人以外)</button>
@@ -25,34 +25,32 @@
                     <div class="person-only"></div><div class="person-only"></div>
                     <div class="other-only"></div><div class="other-only"></div>
                     
-                    <!-- 人用 -->
                     <label class="person-only">苗字:</label> <input type="text" id="search-lastname" class="person-only" placeholder="漢字/ひらがな">
                     <label class="person-only">名前:</label> <input type="text" id="search-firstname" class="person-only" placeholder="漢字/ひらがな">
                     
-                    <!-- 人以外用 -->
                     <label class="other-only">名称:</label> <input type="text" id="search-other-name" class="other-only" placeholder="漢字/ひらがな" style="grid-column: span 3; width: 95%;">
                     
-                    <!-- 人用 -->
+                    <!-- 検索時は「すべて」がデフォルト -->
                     <label class="person-only">性別:</label> 
                     <select id="search-gender" class="classic-select person-only">
                         <option value="">すべて</option>
+                        <option value="不明">不明</option>
                         <option value="女">女</option>
                         <option value="男">男</option>
                     </select>
                     <label class="person-only">血液型:</label> 
                     <select id="search-blood" class="classic-select person-only">
                         <option value="">すべて</option>
+                        <option value="不明">不明</option>
                         <option value="A">A</option>
                         <option value="B">B</option>
                         <option value="O">O</option>
                         <option value="AB">AB</option>
-                        <option value="不明">不明</option>
                     </select>
                     
                     <label class="person-only">生年月日:</label> <input type="date" id="search-birth" class="person-only">
                     <div class="person-only"></div><div class="person-only"></div>
                     
-                    <!-- 共通 -->
                     <label>住所:</label> <input type="text" id="search-address" style="grid-column: span 3; width: 95%;">
                     <label>キーワード:</label> <input type="text" id="search-keyword" placeholder="詳細・備考から検索" style="grid-column: span 3; width: 95%;">
                 </div>
@@ -64,11 +62,9 @@
             <div class="result-box">
                 <table id="result-table">
                     <thead>
-                        <!-- JSで動的に切り替わります -->
                         <tr><th>ID</th><th>氏名</th><th>性別</th><th>年齢</th><th>操作</th></tr>
                     </thead>
                     <tbody id="result-body">
-                        <!-- 検索結果 -->
                     </tbody>
                 </table>
             </div>
@@ -78,43 +74,42 @@
         <div id="register-screen" class="screen" style="display: none;">
             <input type="hidden" id="edit-doc-id">
             <div class="form-grid">
-                <!-- 共通 -->
                 <label>ID:</label> <input type="text" id="reg-id">
                 <div></div><div></div>
 
-                <!-- 人用 -->
                 <label class="person-only">苗字:</label> <input type="text" id="reg-lastname" class="person-only">
                 <label class="person-only">苗字(ふりがな):</label> <input type="text" id="reg-lastname-kana" class="person-only">
                 
                 <label class="person-only">名前:</label> <input type="text" id="reg-firstname" class="person-only">
                 <label class="person-only">名前(ふりがな):</label> <input type="text" id="reg-firstname-kana" class="person-only">
                 
-                <!-- 人以外用 -->
                 <label class="other-only">名称:</label> <input type="text" id="reg-other-name" class="other-only">
                 <label class="other-only">名称(ふりがな):</label> <input type="text" id="reg-other-name-kana" class="other-only">
 
-                <!-- 人用 -->
+                <!-- 登録時は「不明」がデフォルト -->
                 <label class="person-only">性別:</label>
                 <select id="reg-gender" class="classic-select person-only">
+                    <option value="不明" selected>不明</option>
                     <option value="女">女</option>
                     <option value="男">男</option>
                 </select>
                 
                 <label class="person-only">血液型:</label>
                 <select id="reg-blood" class="classic-select person-only">
+                    <option value="不明" selected>不明</option>
                     <option value="A">A</option>
                     <option value="B">B</option>
                     <option value="O">O</option>
                     <option value="AB">AB</option>
-                    <option value="不明">不明</option>
                 </select>
                 
                 <label class="person-only">生年月日:</label> <input type="date" id="reg-birth" class="person-only">
                 <div class="person-only"></div><div class="person-only"></div>
                 
-                <!-- 共通 -->
                 <label>住所:</label> <input type="text" id="reg-address" style="grid-column: span 3; width: 95%;">
-                <label>参考写真URL:</label> <input type="text" id="reg-photo-url" placeholder="画像のリンクURLを入力" style="grid-column: span 3; width: 95%;">
+                
+                <!-- 人以外の場合は写真項目を完全に非表示にする -->
+                <label class="person-only">参考写真URL:</label> <input type="text" id="reg-photo-url" class="person-only" placeholder="画像のリンクURLを入力" style="grid-column: span 3; width: 95%;">
             </div>
 
             <!-- 関連情報 -->
@@ -141,7 +136,6 @@
                 <div class="editor-toolbar">
                     <button type="button" onclick="insertText('reg-notes', '[[', ']]')">リンク [[]]</button>
                     <button type="button" onclick="insertText('reg-notes', '**', '**')">太字</button>
-                    <!-- ★備考にも見出しボタンを追加 -->
                     <button type="button" onclick="insertText('reg-notes', '== ', ' ==')">見出し</button>
                 </div>
                 <textarea id="reg-notes" class="large-textarea" placeholder="備考を記入..."></textarea>
@@ -164,7 +158,8 @@
             </div>
             
             <div class="profile-header">
-                <div class="photo-container">
+                <!-- 人以外の場合は写真エリアを完全に非表示にする -->
+                <div class="photo-container person-only">
                     <img id="view-photo" src="" alt="写真" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'150\' viewBox=\'0 0 120 150\'%3E%3Crect width=\'120\' height=\'150\' fill=\'%23d4d0c8\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23808080\' font-size=\'14\'%3E写真なし%3C/text%3E%3C/svg%3E'">
                 </div>
                 <div class="profile-title">
