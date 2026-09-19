@@ -28,6 +28,21 @@ body {
 .toolbar {
     padding: 5px;
     border-bottom: 1px solid #808080;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.toolbar-group {
+    border: 1px solid #a0a0a0;
+    padding: 3px 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.toolbar-group span {
+    font-size: 0.9em;
+    color: #333;
+    font-weight: bold;
 }
 
 /* ボタン */
@@ -52,12 +67,10 @@ button:active {
     padding: 5px 11px 3px 13px;
 }
 
-.action-btn {
-    font-weight: bold;
-}
+.action-btn { font-weight: bold; }
 
 /* 入力欄 */
-input[type="text"], input[type="date"], select, textarea {
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
     border-top: 2px solid #404040;
     border-left: 2px solid #404040;
     border-bottom: 2px solid #ffffff;
@@ -87,30 +100,16 @@ input[type="text"], input[type="date"], select, textarea {
 
 .search-grid, .form-grid {
     display: grid;
-    grid-template-columns: 120px 1fr 120px 1fr;
+    grid-template-columns: 100px 1fr 100px 1fr;
     gap: 8px;
     margin-bottom: 15px;
     align-items: center;
 }
 
-.search-grid label, .form-grid label {
-    text-align: left;
-}
-
-.search-actions {
-    text-align: right;
-    margin-bottom: 10px;
-}
-
-.large-textarea {
-    width: 98%;
-    height: 150px;
-    margin-top: 5px;
-}
-
-.editor-section {
-    margin-top: 15px;
-}
+.search-grid label, .form-grid label { text-align: left; }
+.search-actions { text-align: right; margin-bottom: 10px; }
+.large-textarea { width: 98%; height: 150px; margin-top: 5px; }
+.editor-section { margin-top: 15px; }
 
 table {
     width: 100%;
@@ -118,23 +117,11 @@ table {
     background-color: white;
     border: 2px solid #808080;
 }
-th, td {
-    border: 1px solid #c0c0c0;
-    padding: 4px;
-    text-align: left;
-}
-th {
-    background-color: #d4d0c8;
-    border-top: 1px solid white;
-    border-left: 1px solid white;
-}
+th, td { border: 1px solid #c0c0c0; padding: 4px; text-align: left; }
+th { background-color: #d4d0c8; border-top: 1px solid white; border-left: 1px solid white; }
 
-.info-table th {
-    width: 15%;
-}
-.info-table td {
-    width: 35%;
-}
+.info-table th { width: 15%; }
+.info-table td { width: 35%; }
 
 .profile-header {
     display: flex;
@@ -154,27 +141,10 @@ th {
     align-items: center;
     justify-content: center;
 }
-
-.photo-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: cover;
-}
-
-.profile-title {
-    flex-grow: 1;
-}
-
-#view-id-rank {
-    font-weight: bold;
-    font-size: 1.2em;
-    margin-bottom: 5px;
-}
-
-.kana-text {
-    font-size: 0.8em;
-    color: #666;
-}
+.photo-container img { max-width: 100%; max-height: 100%; object-fit: cover; }
+.profile-title { flex-grow: 1; }
+#view-id-rank { font-weight: bold; font-size: 1.2em; margin-bottom: 5px; }
+.kana-text { font-size: 0.8em; color: #666; }
 
 .section-title {
     border-bottom: 2px solid #808080;
@@ -184,44 +154,24 @@ th {
     margin-bottom: 10px;
 }
 
-.wiki-content {
-    background: white;
-    border: 2px inset #ffffff;
-    padding: 10px;
-    min-height: 50px;
-}
+.wiki-content { background: white; border: 2px inset #ffffff; padding: 10px; min-height: 50px; }
+.wiki-content h3 { border-bottom: 1px solid #c0c0c0; font-size: 1.1em; margin-top: 15px; margin-bottom: 5px; }
+.wiki-content a { color: blue; text-decoration: underline; cursor: pointer; }
 
-.wiki-content h3 {
-    border-bottom: 1px solid #c0c0c0;
-    font-size: 1.1em;
-    margin-top: 15px;
-    margin-bottom: 5px;
-}
-
-.wiki-content a {
-    color: blue;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.family-row {
-    margin-bottom: 5px;
-}
-.family-row input {
-    margin-right: 5px;
-}
-
+.family-row, .study-row { margin-bottom: 5px; }
+.family-row input, .study-row input, .study-row select { margin-right: 5px; }
 
 /* =========================================
-   人と人以外の表示切替用設定 
+   モードごとの表示切替用設定
 ========================================= */
+/* 人モード */
+body.mode-person .other-only { display: none !important; }
+/* 人以外モード */
+body.mode-other .person-only { display: none !important; }
 
-/* 人モードの時は、人以外用の項目を消す */
-body.mode-person .other-only {
-    display: none !important;
-}
-
-/* 人以外モードの時は、人用の項目を消す */
-body.mode-other .person-only {
+/* 本や日記、お金など、人/人以外以外のモードのときは両方消す */
+body.mode-book .person-only, body.mode-book .other-only,
+body.mode-diary .person-only, body.mode-diary .other-only,
+body.mode-money .person-only, body.mode-money .other-only {
     display: none !important;
 }
