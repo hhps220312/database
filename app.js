@@ -75,7 +75,7 @@ window.insertText = function(targetId, prefix, suffix) {
 }
 
 /* =========================================================================
-   人物・人以外 システム (改修)
+   人物・人以外 システム 
 ========================================================================= */
 function clearForm() {
     document.getElementById("edit-doc-id").value = "";
@@ -238,6 +238,28 @@ window.searchData = async function() {
             if(match) results.push({ docId: doc.id, ...d });
         });
         
+        // ★ ID順に確実な並び替えを実施 (数値化して比較)
+        results.sort((a, b) => {
+            const idA = String(a.studentId || "").trim();
+            const idB = String(b.studentId || "").trim();
+
+            // IDが未入力(空欄)の場合は強制的に下げる
+            if (idA === "" && idB !== "") return 1;
+            if (idB === "" && idA !== "") return -1;
+            if (idA === "" && idB === "") return 0;
+
+            const numA = Number(idA);
+            const numB = Number(idB);
+
+            // 両方が「純粋な数字」として解釈できる場合は、確実な数値の引き算で並び替える
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return numA - numB;
+            }
+
+            // 文字や記号が混ざっている場合 (例: A-1, B-2 など) は自然順ソート
+            return idA.localeCompare(idB, 'ja', { numeric: true });
+        });
+
         window.searchResults = results;
         results.forEach((d, index) => {
             const tr = document.createElement("tr");
@@ -798,7 +820,6 @@ window.searchMoney = async function() {
     const endD = document.getElementById("money-end-date").value;
     
     try {
-        // 全件取得して残高を計算する（データ量が多い場合は設計見直しが必要ですが今回は個人用途として全取得）
         const q = query(collection(db, "transactions"));
         const snap = await getDocs(q);
         
