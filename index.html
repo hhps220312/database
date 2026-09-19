@@ -293,8 +293,9 @@
                 </div>
             </div>
             
-            <div style="display: flex; gap: 20px; margin-top: 10px;">
-                <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px;">
+            <!-- グラフはみ出し対策：全体を高さ指定の flex コンテナにする -->
+            <div style="display: flex; gap: 20px; margin-top: 10px; height: 250px;">
+                <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px; overflow-y: auto;">
                     <h4 style="margin-top:0;">期間内の平均データ</h4>
                     <table class="info-table">
                         <tr><th>睡眠時間</th><td id="stat-sleep-time">-</td></tr>
@@ -303,14 +304,17 @@
                         <tr><th>塾入室 / 退室</th><td id="stat-cram">- / -</td></tr>
                     </table>
                 </div>
-                <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px; height: 200px;">
+                <!-- canvasの親に flex と position: relative を指定してはみ出しを防止 -->
+                <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px; display: flex; flex-direction: column;">
                     <h4 style="margin-top:0; margin-bottom:5px;">勉強時間の割合 (棒グラフ)</h4>
-                    <canvas id="diary-chart"></canvas>
+                    <div style="position: relative; flex-grow: 1; min-height: 0;">
+                        <canvas id="diary-chart"></canvas>
+                    </div>
                 </div>
             </div>
 
             <h4 style="margin-top: 15px;">日記一覧</h4>
-            <div class="result-box" style="max-height: 200px;">
+            <div class="result-box" style="max-height: 200px; overflow-y: auto;">
                 <table id="result-diary-table">
                     <thead><tr><th>日付</th><th>睡眠</th><th>総勉強</th><th>出来事</th><th>操作</th></tr></thead>
                     <tbody id="result-diary-body"></tbody>
@@ -387,13 +391,16 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 20px; margin-top: 10px;">
-                <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px; height: 200px;">
+            <!-- グラフはみ出し対策 -->
+            <div style="display: flex; gap: 20px; margin-top: 10px; height: 250px;">
+                <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px; display: flex; flex-direction: column;">
                     <h4 style="margin-top:0; margin-bottom:5px;">支出カテゴリ割合</h4>
-                    <canvas id="money-chart"></canvas>
+                    <div style="position: relative; flex-grow: 1; min-height: 0;">
+                        <canvas id="money-chart"></canvas>
+                    </div>
                 </div>
-                <div style="flex: 1.5;">
-                    <div class="result-box" style="height: 200px; overflow-y: scroll;">
+                <div style="flex: 1.5; display: flex; flex-direction: column;">
+                    <div class="result-box" style="flex-grow: 1; overflow-y: auto;">
                         <table id="result-money-table">
                             <thead><tr><th>日付</th><th>種別</th><th>方法</th><th>金額</th><th>カテゴリ</th><th>操作</th></tr></thead>
                             <tbody id="result-money-body"></tbody>
