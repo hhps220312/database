@@ -238,12 +238,11 @@ window.searchData = async function() {
             if(match) results.push({ docId: doc.id, ...d });
         });
         
-        // ★ ID順に確実な並び替えを実施 (数値化して比較)
+        // ID順に確実な並び替えを実施 (数値化して比較)
         results.sort((a, b) => {
             const idA = String(a.studentId || "").trim();
             const idB = String(b.studentId || "").trim();
 
-            // IDが未入力(空欄)の場合は強制的に下げる
             if (idA === "" && idB !== "") return 1;
             if (idB === "" && idA !== "") return -1;
             if (idA === "" && idB === "") return 0;
@@ -251,12 +250,10 @@ window.searchData = async function() {
             const numA = Number(idA);
             const numB = Number(idB);
 
-            // 両方が「純粋な数字」として解釈できる場合は、確実な数値の引き算で並び替える
             if (!isNaN(numA) && !isNaN(numB)) {
                 return numA - numB;
             }
 
-            // 文字や記号が混ざっている場合 (例: A-1, B-2 など) は自然順ソート
             return idA.localeCompare(idB, 'ja', { numeric: true });
         });
 
@@ -561,7 +558,7 @@ window.searchBooks = async function() {
 }
 
 /* =========================================================================
-   日記 システム (時間計算・グラフ化)
+   日記 システム (時間計算・グラフ化・削除機能追加)
 ========================================================================= */
 const subjectsList = ["論国","古典","数学","数１","数２","数３","数Ａ","数Ｂ","数Ｃ","生物","物理","化学","地学","地理","歴史","公共","倫理","英コ","論表","保健","家庭","その他"];
 
@@ -710,12 +707,16 @@ window.searchDiary = async function() {
             let shortText = (d.diaryText||"").substring(0,15) + ((d.diaryText||"").length>15?"...":"");
             
             const tr = document.createElement("tr");
+            // ★削除ボタンを追加
             tr.innerHTML = `
                 <td>${d.date}</td>
                 <td>${daySleep}</td>
                 <td>${dayStudyStr}</td>
                 <td>${shortText}</td>
-                <td><button onclick="editDiary(${i})">編集</button></td>
+                <td style="white-space: nowrap;">
+                    <button onclick="editDiary(${i})">編集</button>
+                    <button onclick="deleteDiary(${i})" style="color:red;">削除</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -749,6 +750,22 @@ window.editDiary = function(index) {
     showScreen('register-diary-screen');
 }
 
+// ★日記の削除処理を追加
+window.deleteDiary = async function(index) {
+    const d = window.diaryDataCache[index];
+    if(!d) return;
+    if(confirm(`本当に ${d.date} の日記を削除しますか？\nこの操作は取り消せません。`)) {
+        try {
+            await deleteDoc(doc(db, "diaries", d.docId));
+            alert("削除しました。");
+            searchDiary();
+        } catch(e) {
+            alert("削除に失敗しました。");
+            console.error(e);
+        }
+    }
+}
+
 function drawDiaryChart(subjData) {
     const ctx = document.getElementById('diary-chart').getContext('2d');
     if(window.diaryChartInstance) window.diaryChartInstance.destroy();
@@ -780,7 +797,7 @@ function drawDiaryChart(subjData) {
 
 
 /* =========================================================================
-   お金 システム (残高・グラフ化)
+   お金 システム (残高・グラフ化・削除機能追加)
 ========================================================================= */
 function clearMoneyForm() {
     document.getElementById("edit-money-id").value = "";
@@ -873,13 +890,17 @@ window.searchMoney = async function() {
             const color = isInc ? 'blue' : 'red';
             const sign = isInc ? '+' : '-';
             const tr = document.createElement("tr");
+            // ★削除ボタンを追加
             tr.innerHTML = `
                 <td>${d.date}</td>
                 <td style="color:${color}">${isInc?'収入':'支出'}</td>
                 <td>${methodMap[d.method]}</td>
                 <td style="color:${color}">${sign}¥${d.amount.toLocaleString()}</td>
                 <td>${d.category||'-'}</td>
-                <td><button onclick="editMoney(${i})">編集</button></td>
+                <td style="white-space: nowrap;">
+                    <button onclick="editMoney(${i})">編集</button>
+                    <button onclick="deleteMoney(${i})" style="color:red;">削除</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -900,6 +921,24 @@ window.editMoney = function(index) {
     document.getElementById("reg-money-category").value = d.category||"";
     document.getElementById("reg-money-memo").value = d.memo||"";
     showScreen('register-money-screen');
+}
+
+// ★お金の削除処理を追加
+window.deleteMoney = async function(index) {
+    const d = window.moneyDataCache[index];
+    if(!d) return;
+    const isInc = d.type === 'income';
+    const sign = isInc ? '+' : '-';
+    if(confirm(`本当に ${d.date} のデータ（${sign}¥${d.amount.toLocaleString()}）を削除しますか？\nこの操作は取り消せません。`)) {
+        try {
+            await deleteDoc(doc(db, "transactions", d.docId));
+            alert("削除しました。");
+            searchMoney();
+        } catch(e) {
+            alert("削除に失敗しました。");
+            console.error(e);
+        }
+    }
 }
 
 function drawMoneyChart(catData) {
