@@ -213,6 +213,7 @@ window.searchData = async function() {
         const sBlood = document.getElementById("search-blood").value;
         const sBirth = document.getElementById("search-birth").value;
         const sAddr = document.getElementById("search-address").value;
+        const sPhone = document.getElementById("search-phone") ? document.getElementById("search-phone").value : ""; // ★追加
         const sKey = document.getElementById("search-keyword").value.toLowerCase();
 
         let results = [];
@@ -232,7 +233,11 @@ window.searchData = async function() {
             } else {
                 if (sOther && !((d.otherName||"").includes(sOther) || (d.otherNameKana||"").includes(toHiragana(sOther)))) match = false;
             }
-            if (sAddr && !((d.address||"").includes(sAddr) || (d.phone||"").includes(sAddr))) match = false;
+            
+            // ★住所と電話番号をそれぞれ独立して検索する
+            if (sAddr && !((d.address||"").includes(sAddr))) match = false;
+            if (sPhone && !((d.phone||"").includes(sPhone))) match = false;
+            
             if (sKey && !((d.details||"").toLowerCase().includes(sKey) || (d.notes||"").toLowerCase().includes(sKey) || (d.driveLink||"").toLowerCase().includes(sKey))) match = false;
             
             if(match) results.push({ docId: doc.id, ...d });
@@ -707,7 +712,6 @@ window.searchDiary = async function() {
             let shortText = (d.diaryText||"").substring(0,15) + ((d.diaryText||"").length>15?"...":"");
             
             const tr = document.createElement("tr");
-            // ★削除ボタンを追加
             tr.innerHTML = `
                 <td>${d.date}</td>
                 <td>${daySleep}</td>
@@ -750,7 +754,6 @@ window.editDiary = function(index) {
     showScreen('register-diary-screen');
 }
 
-// ★日記の削除処理を追加
 window.deleteDiary = async function(index) {
     const d = window.diaryDataCache[index];
     if(!d) return;
@@ -890,7 +893,6 @@ window.searchMoney = async function() {
             const color = isInc ? 'blue' : 'red';
             const sign = isInc ? '+' : '-';
             const tr = document.createElement("tr");
-            // ★削除ボタンを追加
             tr.innerHTML = `
                 <td>${d.date}</td>
                 <td style="color:${color}">${isInc?'収入':'支出'}</td>
@@ -923,7 +925,6 @@ window.editMoney = function(index) {
     showScreen('register-money-screen');
 }
 
-// ★お金の削除処理を追加
 window.deleteMoney = async function(index) {
     const d = window.moneyDataCache[index];
     if(!d) return;
