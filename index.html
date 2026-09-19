@@ -69,7 +69,10 @@
                     <label class="person-only">生年月日:</label> <input type="date" id="search-birth" class="person-only">
                     <div class="person-only"></div><div class="person-only"></div>
                     
-                    <label>住所/TEL:</label> <input type="text" id="search-address" placeholder="住所または電話番号" style="grid-column: span 3; width: 95%;">
+                    <!-- ★住所と電話番号を分割 -->
+                    <label>電話番号:</label> <input type="text" id="search-phone" placeholder="電話番号">
+                    <label>住所:</label> <input type="text" id="search-address" placeholder="住所">
+                    
                     <label>キーワード:</label> <input type="text" id="search-keyword" placeholder="詳細・備考・リンクから検索" style="grid-column: span 3; width: 95%;">
                 </div>
                 <div class="search-actions">
@@ -293,7 +296,6 @@
                 </div>
             </div>
             
-            <!-- グラフはみ出し対策：全体を高さ指定の flex コンテナにする -->
             <div style="display: flex; gap: 20px; margin-top: 10px; height: 250px;">
                 <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px; overflow-y: auto;">
                     <h4 style="margin-top:0;">期間内の平均データ</h4>
@@ -304,7 +306,6 @@
                         <tr><th>塾入室 / 退室</th><td id="stat-cram">- / -</td></tr>
                     </table>
                 </div>
-                <!-- canvasの親に flex と position: relative を指定してはみ出しを防止 -->
                 <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px; display: flex; flex-direction: column;">
                     <h4 style="margin-top:0; margin-bottom:5px;">勉強時間の割合 (棒グラフ)</h4>
                     <div style="position: relative; flex-grow: 1; min-height: 0;">
@@ -391,7 +392,6 @@
                 </div>
             </div>
 
-            <!-- グラフはみ出し対策 -->
             <div style="display: flex; gap: 20px; margin-top: 10px; height: 250px;">
                 <div style="flex: 1; background: white; border: 2px solid #808080; padding: 10px; display: flex; flex-direction: column;">
                     <h4 style="margin-top:0; margin-bottom:5px;">支出カテゴリ割合</h4>
