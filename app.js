@@ -196,7 +196,7 @@ window.saveData = async function() {
         data.gender = document.getElementById("reg-gender").value;
         data.blood = document.getElementById("reg-blood").value;
         data.birth = document.getElementById("reg-birth").value;
-        data.photoUrl = document.getElementById("reg-photo-url").value; // 人物のみ
+        data.photoUrl = document.getElementById("reg-photo-url").value; 
     } else {
         data.otherName = document.getElementById("reg-other-name").value;
         data.otherNameKana = document.getElementById("reg-other-name-kana").value;
@@ -229,7 +229,6 @@ window.searchData = async function() {
         if (window.currentMode === 'person') {
             thead.innerHTML = `<tr><th class="col-id">ID</th><th class="col-thumb">写真</th><th>氏名</th><th class="col-gender">性別</th><th class="col-age">年齢</th><th class="col-action">操作</th></tr>`;
         } else {
-            // 人以外の検索結果ヘッダーからは写真を削除！
             thead.innerHTML = `<tr><th class="col-id">ID</th><th>名称</th><th class="col-action">操作</th></tr>`;
         }
 
@@ -302,7 +301,6 @@ window.searchData = async function() {
                     <td class="col-action"><button onclick="viewDetail(${index}, 'person')">表示</button></td>
                 `;
             } else {
-                // 人以外からは写真列を消去
                 tr.innerHTML = `
                     <td class="col-id">${d.studentId||'-'}</td>
                     <td>${d.otherName||''}</td>
@@ -333,15 +331,17 @@ window.viewDetail = function(index, modeType) {
     document.getElementById("view-photo-container").style.display = "none";
     document.getElementById("view-person-table").style.display = "none";
     document.getElementById("view-book-table").style.display = "none";
+    document.getElementById("view-book-history-container").style.display = "none";
     
     const driveStr = data.driveLink ? `<a href="${data.driveLink}" target="_blank">リンク</a>` : '-';
     
     if (modeType === 'person') {
         const type = data.type || 'person';
         document.getElementById("view-id-rank").innerText = `ID: ${data.studentId || '-'}`;
+        document.getElementById("view-notes-title").innerText = "備考"; // 人物・人以外は備考のみ
         
         if (type === 'person') {
-            document.getElementById("view-photo-container").style.display = "flex"; // 人物のみ写真表示
+            document.getElementById("view-photo-container").style.display = "flex"; 
             document.getElementById("view-photo").src = data.photoUrl || "";
             document.getElementById("view-kana").innerText = `${data.lastnameKana||''} ${data.firstnameKana||''}`;
             document.getElementById("view-name").innerText = `${data.lastname||''} ${data.firstname||''}`;
@@ -363,6 +363,8 @@ window.viewDetail = function(index, modeType) {
         
     } else if (modeType === 'book') {
         document.getElementById("view-id-rank").innerText = `本`;
+        document.getElementById("view-notes-title").innerText = "感想・備考"; // 本の場合は感想を含める
+        
         document.getElementById("view-photo-container").style.display = "flex";
         document.getElementById("view-photo").src = data.bookCoverUrl || "";
         document.getElementById("view-kana").innerText = data.bookTitleKana || '';
@@ -373,8 +375,9 @@ window.viewDetail = function(index, modeType) {
         document.getElementById("view-book-acq-type").innerText = data.acquisitionType || '-';
         document.getElementById("view-book-acq-place").innerText = data.acquisitionPlace || '-';
         
-        const historyTbody = document.getElementById("view-book-history-body");
-        historyTbody.innerHTML = "";
+        // 履歴を独立した表として描画
+        const historyContainer = document.getElementById("view-book-history-container");
+        let hHtml = '';
         let hList = data.history || [];
         if(hList.length === 0 && (data.acquisitionDate || data.startDate || data.endDate)) {
             hList = [{ acq: data.acquisitionDate, start: data.startDate, end: data.endDate }];
@@ -385,14 +388,16 @@ window.viewDetail = function(index, modeType) {
                 const diff = Math.floor((new Date(h.end) - new Date(h.start)) / (1000*60*60*24));
                 readDays = diff >= 0 ? `${diff} 日間` : "-";
             }
-            const tr1 = document.createElement("tr");
-            tr1.innerHTML = `<th rowspan="2" style="text-align:center;">${i+1}回目</th><th>入手日</th><td>${h.acq||'-'}</td><th>日数</th><td>${readDays}</td>`;
-            const tr2 = document.createElement("tr");
-            tr2.innerHTML = `<th>読始日</th><td>${h.start||'-'}</td><th>読終日</th><td>${h.end||'-'}</td>`;
-            historyTbody.appendChild(tr1);
-            historyTbody.appendChild(tr2);
+            hHtml += `
+            <h4 style="margin: 15px 0 5px 0; font-size: 1.05em; color: #000080;">■ ${i+1}回目</h4>
+            <table class="info-table">
+                <tr><th>入手日</th><td>${h.acq||'-'}</td><th>日数</th><td>${readDays}</td></tr>
+                <tr><th>読始日</th><td>${h.start||'-'}</td><th>読終日</th><td>${h.end||'-'}</td></tr>
+            </table>
+            `;
         });
-
+        historyContainer.innerHTML = hHtml;
+        historyContainer.style.display = "block";
         document.getElementById("view-book-table").style.display = "table";
         
         document.getElementById("view-family-title").innerText = "役職・クレジット";
@@ -914,7 +919,6 @@ function clearMoneyForm() {
     document.getElementById("edit-money-id").value = "";
     document.getElementById("reg-money-date").value = "";
     document.getElementById("reg-money-amount").value = "";
-    // カテゴリ削除に伴い、クリア処理からも削除
     document.getElementById("reg-money-memo").value = "";
 }
 
@@ -952,7 +956,7 @@ window.searchMoney = async function() {
         
         let total = 0, cash = 0, paypay = 0, paypayPt = 0, rakuten = 0;
         let listForTable = [];
-        let methodExpenses = {}; // 決済方法ごとの集計に切り替え！
+        let methodExpenses = {}; 
         
         const methodMap = { 'cash':'現金', 'paypay':'PayPay', 'paypay_point':'PayPay pt', 'rakuten_pay':'楽天ペイ' };
 
@@ -973,7 +977,6 @@ window.searchMoney = async function() {
             if(inRange) {
                 listForTable.push({docId: doc.id, ...d});
                 
-                // 支出の場合、決済方法ごとにグラフ用データを集計
                 if(d.type === 'expense') {
                     const mName = methodMap[d.method] || 'その他';
                     if(!methodExpenses[mName]) methodExpenses[mName] = 0;
@@ -1012,7 +1015,6 @@ window.searchMoney = async function() {
             tbody.appendChild(tr);
         });
         
-        // グラフ描画（決済方法ベースで描画）
         drawMoneyChart(methodExpenses);
         
     } catch(e) { console.error(e); }
@@ -1026,7 +1028,7 @@ window.editMoney = function(index) {
     document.getElementById("reg-money-type").value = d.type||"expense";
     document.getElementById("reg-money-amount").value = d.amount||"";
     document.getElementById("reg-money-method").value = d.method||"cash";
-    document.getElementById("reg-money-memo").value = d.memo||""; // カテゴリはないのでメモのみ復元
+    document.getElementById("reg-money-memo").value = d.memo||""; 
     showScreen('register-money-screen');
 }
 
