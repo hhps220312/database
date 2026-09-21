@@ -1,9 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-// ============================================
-// ※ Firebaseの設定はご自身のものを使用してください
-// ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyBqR8bkOF0a7RaL_Rkaz7MIg56wcWfoZek",
     authDomain: "database-1c626.firebaseapp.com",
@@ -17,11 +14,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// グラフインスタンス保持用
 window.diaryChartInstance = null;
 window.moneyChartInstance = null;
 
-/* 共通・ユーティリティ関数 */
 function calculateAge(birthDateString) {
     if (!birthDateString) return "-";
     const today = new Date();
@@ -36,26 +31,20 @@ function toHiragana(str) {
     return str.replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
 }
 
-// === リンク対応エディタのパース関数 ===
 function parseWiki(text) {
     if (!text) return "";
     let html = String(text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
     html = html.replace(/== (.*?) ==/g, "<h3>$1</h3>");
     html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
     
-    // 新しいリンク記法の対応 (例: [[person:山田 太郎]])
     html = html.replace(/\[\[(person|other|book|diary):(.*?)\]\]/g, "<a onclick=\"openLink('$1', '$2')\">$2</a>");
-    
-    // 互換性：古い [[リンク]] は人物として扱う
     html = html.replace(/\[\[(.*?)\]\]/g, (match, p1) => {
-        if(p1.includes(":")) return match; // 上ですでに置換されていればスキップ
+        if(p1.includes(":")) return match; 
         return `<a onclick=\"openLink('person', '${p1}')\">${p1}</a>`;
     });
-    
     return html;
 }
 
-// リンククリック時の画面遷移処理
 window.openLink = function(type, target) {
     if (type === 'diary') {
         changeMode('diary');
@@ -75,7 +64,6 @@ window.openLink = function(type, target) {
         searchData();
     } else {
         changeMode('person');
-        // 半角スペースが含まれている場合もそのまま検索
         document.getElementById('search-keyword').value = target; 
         showScreen('search-screen');
         searchData();
@@ -111,9 +99,7 @@ window.insertText = function(targetId, prefix, suffix) {
     textarea.selectionEnd = start + prefix.length;
 }
 
-/* =========================================================================
-   人物・組織・モノ システム 
-========================================================================= */
+/* 人物・人以外 システム */
 function clearForm() {
     document.getElementById("edit-doc-id").value = "";
     document.querySelectorAll('#register-screen input[type="text"], #register-screen input[type="date"], #register-screen textarea').forEach(el => el.value = "");
@@ -134,9 +120,9 @@ window.toggleCustomRelation = function(selectElem) {
     const personSpan = row.querySelector('.family-name-person');
     const otherSpan = row.querySelector('.family-name-other');
     const val = selectElem.value;
-    customRel.style.display = (val === 'その他' || val === '組織・モノ') ? 'inline-block' : 'none';
-    personSpan.style.display = (val === '組織・モノ') ? 'none' : 'inline-block';
-    otherSpan.style.display = (val === '組織・モノ') ? 'inline-block' : 'none';
+    customRel.style.display = (val === 'その他' || val === '人以外') ? 'inline-block' : 'none';
+    personSpan.style.display = (val === '人以外') ? 'none' : 'inline-block';
+    otherSpan.style.display = (val === '人以外') ? 'inline-block' : 'none';
 }
 window.moveUp = function(btn) {
     const row = btn.closest('div');
@@ -161,14 +147,14 @@ window.addFamilyRow = function(relation = "", customRelation = "", lastname = ""
             <option value="姉" ${relation==='姉'?'selected':''}>姉</option><option value="妹" ${relation==='妹'?'selected':''}>妹</option>
             <option value="配偶者" ${relation==='配偶者'?'selected':''}>配偶者</option><option value="子" ${relation==='子'?'selected':''}>子</option>
             <option value="友達" ${relation==='友達'?'selected':''}>友達</option>
-            <option value="その他" ${relation==='その他'?'selected':''}>その他</option><option value="組織・モノ" ${relation==='組織・モノ'?'selected':''}>組織・モノ</option>
+            <option value="その他" ${relation==='その他'?'selected':''}>その他</option><option value="人以外" ${relation==='人以外'?'selected':''}>人以外</option>
         </select>
-        <input type="text" class="family-custom-relation" placeholder="関係(会社等)" value="${customRelation}" style="width: 90px; display: ${relation === 'その他' || relation === '組織・モノ' ? 'inline-block' : 'none'};">
-        <span class="family-name-person" style="display: ${relation === '組織・モノ' ? 'none' : 'inline-block'};">
+        <input type="text" class="family-custom-relation" placeholder="関係(会社等)" value="${customRelation}" style="width: 90px; display: ${relation === 'その他' || relation === '人以外' ? 'inline-block' : 'none'};">
+        <span class="family-name-person" style="display: ${relation === '人以外' ? 'none' : 'inline-block'};">
             <input type="text" class="family-lastname" placeholder="苗字" value="${lastname}" style="width: 85px;">
             <input type="text" class="family-firstname" placeholder="名前" value="${firstname}" style="width: 85px;">
         </span>
-        <span class="family-name-other" style="display: ${relation === '組織・モノ' ? 'inline-block' : 'none'};">
+        <span class="family-name-other" style="display: ${relation === '人以外' ? 'inline-block' : 'none'};">
             <input type="text" class="family-othername" placeholder="名称" value="${otherName}" style="width: 175px;">
         </span>
         <button type="button" onclick="moveUp(this)" style="padding:2px 8px;">↑</button>
@@ -196,7 +182,6 @@ window.saveData = async function() {
         phone: document.getElementById("reg-phone").value,
         address: document.getElementById("reg-address").value,
         driveLink: document.getElementById("reg-drive").value,
-        photoUrl: document.getElementById("reg-photo-url").value, // 人も組織も共通で保持可能にする
         family: familyData,
         details: document.getElementById("reg-details").value,
         notes: document.getElementById("reg-notes").value,
@@ -211,6 +196,7 @@ window.saveData = async function() {
         data.gender = document.getElementById("reg-gender").value;
         data.blood = document.getElementById("reg-blood").value;
         data.birth = document.getElementById("reg-birth").value;
+        data.photoUrl = document.getElementById("reg-photo-url").value; // 人物のみ
     } else {
         data.otherName = document.getElementById("reg-other-name").value;
         data.otherNameKana = document.getElementById("reg-other-name-kana").value;
@@ -243,7 +229,8 @@ window.searchData = async function() {
         if (window.currentMode === 'person') {
             thead.innerHTML = `<tr><th class="col-id">ID</th><th class="col-thumb">写真</th><th>氏名</th><th class="col-gender">性別</th><th class="col-age">年齢</th><th class="col-action">操作</th></tr>`;
         } else {
-            thead.innerHTML = `<tr><th class="col-id">ID</th><th class="col-thumb">写真</th><th>名称</th><th class="col-action">操作</th></tr>`;
+            // 人以外の検索結果ヘッダーからは写真を削除！
+            thead.innerHTML = `<tr><th class="col-id">ID</th><th>名称</th><th class="col-action">操作</th></tr>`;
         }
 
         const sId = document.getElementById("search-id").value;
@@ -278,7 +265,6 @@ window.searchData = async function() {
             if (sAddr && !((d.address||"").includes(sAddr))) match = false;
             if (sPhone && !((d.phone||"").includes(sPhone))) match = false;
             
-            // キーワードは半角スペースが含まれていても、名前等に対しても結合してマッチング
             if (sKey) {
                 const fullName = window.currentMode === 'person' ? (d.lastname||"") + " " + (d.firstname||"") : (d.otherName||"");
                 const allText = (fullName + " " + (d.details||"") + " " + (d.notes||"") + " " + (d.driveLink||"")).toLowerCase();
@@ -288,7 +274,6 @@ window.searchData = async function() {
             if(match) results.push({ docId: doc.id, ...d });
         });
         
-        // ID順並び替え
         results.sort((a, b) => {
             const idA = String(a.studentId || "").trim();
             const idB = String(b.studentId || "").trim();
@@ -304,10 +289,10 @@ window.searchData = async function() {
         window.searchResults = results;
         results.forEach((d, index) => {
             const tr = document.createElement("tr");
-            const photoSrc = d.photoUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='12'%3E画像なし%3C/text%3E%3C/svg%3E";
-            const imgTag = `<img src="${photoSrc}" class="thumb-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 100 100\\'%3E%3Crect width=\\'100\\' height=\\'100\\' fill=\\'%23e0e0e0\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'12\\'%3E画像なし%3C/text%3E%3C/svg%3E'">`;
             
             if (window.currentMode === 'person') {
+                const photoSrc = d.photoUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='12'%3E画像なし%3C/text%3E%3C/svg%3E";
+                const imgTag = `<img src="${photoSrc}" class="thumb-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 100 100\\'%3E%3Crect width=\\'100\\' height=\\'100\\' fill=\\'%23e0e0e0\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'12\\'%3E画像なし%3C/text%3E%3C/svg%3E'">`;
                 tr.innerHTML = `
                     <td class="col-id">${d.studentId||'-'}</td>
                     <td class="col-thumb">${imgTag}</td>
@@ -317,9 +302,9 @@ window.searchData = async function() {
                     <td class="col-action"><button onclick="viewDetail(${index}, 'person')">表示</button></td>
                 `;
             } else {
+                // 人以外からは写真列を消去
                 tr.innerHTML = `
                     <td class="col-id">${d.studentId||'-'}</td>
-                    <td class="col-thumb">${imgTag}</td>
                     <td>${d.otherName||''}</td>
                     <td class="col-action"><button onclick="viewDetail(${index}, 'person')">表示</button></td>
                 `;
@@ -330,9 +315,6 @@ window.searchData = async function() {
     finally { window.isSearching = false; }
 }
 
-/* =========================================================================
-   詳細表示 (共通)
-========================================================================= */
 window.goBackFromDetail = function() {
     const d = window.currentViewingData;
     if (d.modeType === 'book') showScreen('search-book-screen');
@@ -357,10 +339,10 @@ window.viewDetail = function(index, modeType) {
     if (modeType === 'person') {
         const type = data.type || 'person';
         document.getElementById("view-id-rank").innerText = `ID: ${data.studentId || '-'}`;
-        document.getElementById("view-photo-container").style.display = "flex";
-        document.getElementById("view-photo").src = data.photoUrl || "";
         
         if (type === 'person') {
+            document.getElementById("view-photo-container").style.display = "flex"; // 人物のみ写真表示
+            document.getElementById("view-photo").src = data.photoUrl || "";
             document.getElementById("view-kana").innerText = `${data.lastnameKana||''} ${data.firstnameKana||''}`;
             document.getElementById("view-name").innerText = `${data.lastname||''} ${data.firstname||''}`;
             document.getElementById("view-gender").innerText = data.gender || '-';
@@ -391,7 +373,6 @@ window.viewDetail = function(index, modeType) {
         document.getElementById("view-book-acq-type").innerText = data.acquisitionType || '-';
         document.getElementById("view-book-acq-place").innerText = data.acquisitionPlace || '-';
         
-        // 読書履歴の表示
         const historyTbody = document.getElementById("view-book-history-body");
         historyTbody.innerHTML = "";
         let hList = data.history || [];
@@ -450,11 +431,11 @@ function renderFamilyList(familyArr, ulId, containerId) {
         document.getElementById(containerId).style.display = "block";
         familyArr.forEach(f => {
             let relText = "";
-            if (f.relation === '組織・モノ') relText = f.customRelation ? `【${f.customRelation}】 ` : "";
+            if (f.relation === '人以外') relText = f.customRelation ? `【${f.customRelation}】 ` : "";
             else if (f.relation === 'その他') relText = `【${f.customRelation || f.relation}】 `;
             else relText = `【${f.relation || '関連'}】 `;
             const li = document.createElement("li");
-            if (f.relation === '組織・モノ') li.innerHTML = `${relText}${f.otherName||""}`;
+            if (f.relation === '人以外') li.innerHTML = `${relText}${f.otherName||""}`;
             else li.innerHTML = `${relText}${f.lastname||''} ${f.firstname||''}`;
             list.appendChild(li);
         });
@@ -475,7 +456,6 @@ window.editCurrentData = function() {
         document.getElementById("reg-book-acq-type").value = d.acquisitionType||"買った";
         document.getElementById("reg-book-acq-place").value = d.acquisitionPlace||"";
         
-        // 読書履歴の復元
         document.getElementById("book-history-list").innerHTML = "";
         let hList = d.history || [];
         if(hList.length === 0 && (d.acquisitionDate || d.startDate || d.endDate)) {
@@ -495,7 +475,7 @@ window.editCurrentData = function() {
         document.getElementById("reg-phone").value = d.phone||"";
         document.getElementById("reg-address").value = d.address||"";
         document.getElementById("reg-drive").value = d.driveLink||"";
-        document.getElementById("reg-photo-url").value = d.photoUrl||"";
+        
         document.getElementById("reg-details").value = d.details||"";
         document.getElementById("reg-notes").value = d.notes||"";
         if (window.currentMode === 'person') {
@@ -506,6 +486,7 @@ window.editCurrentData = function() {
             document.getElementById("reg-gender").value = d.gender||"不明";
             document.getElementById("reg-blood").value = d.blood||"不明";
             document.getElementById("reg-birth").value = d.birth||"";
+            document.getElementById("reg-photo-url").value = d.photoUrl||"";
         } else {
             document.getElementById("reg-other-name").value = d.otherName||"";
             document.getElementById("reg-other-name-kana").value = d.otherNameKana||"";
@@ -530,15 +511,13 @@ window.deleteCurrentData = async function() {
     }
 }
 
-/* =========================================================================
-   本 システム
-========================================================================= */
+/* 本 システム */
 function clearBookForm() {
     document.getElementById("edit-book-id").value = "";
     document.querySelectorAll('#register-book-screen input, #register-book-screen textarea').forEach(el => el.value = "");
     document.getElementById("credit-list").innerHTML = "";
     document.getElementById("book-history-list").innerHTML = "";
-    addBookHistoryRow(); // 最低1行追加
+    addBookHistoryRow(); 
 }
 window.clearSearchBook = function() {
     document.querySelectorAll('#search-book-screen input').forEach(el => el.value = "");
@@ -594,7 +573,7 @@ window.saveBook = async function() {
         publishYear: document.getElementById("reg-book-year").value,
         acquisitionType: document.getElementById("reg-book-acq-type").value,
         acquisitionPlace: document.getElementById("reg-book-acq-place").value,
-        history: history, // 新しい複数回対応
+        history: history, 
         credits: credits,
         review: document.getElementById("reg-book-review").value,
         updatedAt: new Date()
@@ -632,7 +611,6 @@ window.searchBooks = async function() {
             if (sGenre && !(d.genres||"").includes(sGenre)) match = false;
             if (sAcqPlace && !(d.acquisitionPlace||"").includes(sAcqPlace)) match = false;
             
-            // 履歴から読んだ日が含まれているかチェック
             let hList = d.history || [];
             if(hList.length === 0 && (d.startDate || d.endDate)) {
                 hList = [{ start: d.startDate, end: d.endDate }];
@@ -653,7 +631,6 @@ window.searchBooks = async function() {
             if(match) results.push({ docId: doc.id, ...d });
         });
         
-        // ふりがな順（「上中下」対応）
         results.sort((a, b) => {
             let kanaA = (a.bookTitleKana || a.bookTitle || "").toString();
             let kanaB = (b.bookTitleKana || b.bookTitle || "").toString();
@@ -692,7 +669,7 @@ window.searchBooks = async function() {
                 <td class="col-thumb">${imgTag}</td>
                 <td>${d.bookTitle||'無題'}</td>
                 <td class="col-genre">${d.genres||'-'}</td>
-                <td class="col-status <span class="${statusClass}">${status}</span></td>
+                <td class="col-status"><span class="${statusClass}">${status}</span></td>
                 <td class="col-action"><button onclick="viewDetail(${i}, 'book')">表示</button></td>
             `;
             tbody.appendChild(tr);
@@ -700,9 +677,7 @@ window.searchBooks = async function() {
     } catch(e) { tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>エラー</td></tr>"; }
 }
 
-/* =========================================================================
-   日記 システム
-========================================================================= */
+/* 日記 システム */
 const subjectsList = ["論国","古典","数学","数１","数２","数３","数Ａ","数Ｂ","数Ｃ","生物","物理","化学","地学","地理","歴史","公共","倫理","英コ","論表","保健","家庭","その他"];
 
 function clearDiaryForm() {
@@ -739,7 +714,6 @@ function calcMinutes(startStr, endStr) {
     return endM - startM;
 }
 
-// 平均時刻の計算 (isSleep=true の場合は深夜0〜12時を翌日扱い)
 function calcAverageTimeStr(timesArray, isSleep = false) {
     if(!timesArray || timesArray.length === 0) return "-";
     let total = 0, count = 0;
@@ -810,7 +784,6 @@ window.searchDiary = async function() {
             results.push({docId: doc.id, ...d});
         });
         
-        // 日付降順 (最新が上)
         results.sort((a,b) => b.date.localeCompare(a.date));
         window.diaryDataCache = results;
         
@@ -846,7 +819,6 @@ window.searchDiary = async function() {
             });
             let dayStudyStr = dayStudyMin > 0 ? `${Math.floor(dayStudyMin/60)}h${dayStudyMin%60}m` : "-";
             
-            // 出来事はプレーンテキストに直してから表示 (タグが見えないように)
             let plainText = (d.diaryText||"").replace(/\[\[.*?\]\]/g, "リンク").replace(/== /g, "").replace(/ ==/g, "").replace(/\*\*/g, "");
             let shortText = plainText.substring(0, 20) + (plainText.length > 20 ? "..." : "");
             
@@ -867,7 +839,6 @@ window.searchDiary = async function() {
         let avgSleep = sleepCount > 0 ? Math.round(totalSleepMin/sleepCount) : 0;
         document.getElementById("stat-sleep-time").innerText = avgSleep > 0 ? `${Math.floor(avgSleep/60)}時間${avgSleep%60}分` : "-";
         
-        // 平均起床のバグ修正：就寝時間は true(補正あり)、起床時間は false(補正なし)
         document.getElementById("stat-wake-sleep").innerText = `${calcAverageTimeStr(sleepArr, true)} / ${calcAverageTimeStr(wakeArr, false)}`;
         document.getElementById("stat-school").innerText = `${calcAverageTimeStr(schInArr, false)} / ${calcAverageTimeStr(schOutArr, false)}`;
         document.getElementById("stat-cram").innerText = `${calcAverageTimeStr(cramInArr, false)} / ${calcAverageTimeStr(cramOutArr, false)}`;
@@ -938,14 +909,12 @@ function drawDiaryChart(subjData) {
     });
 }
 
-/* =========================================================================
-   お金 システム
-========================================================================= */
+/* お金 システム */
 function clearMoneyForm() {
     document.getElementById("edit-money-id").value = "";
     document.getElementById("reg-money-date").value = "";
     document.getElementById("reg-money-amount").value = "";
-    document.getElementById("reg-money-category").value = "";
+    // カテゴリ削除に伴い、クリア処理からも削除
     document.getElementById("reg-money-memo").value = "";
 }
 
@@ -960,7 +929,6 @@ window.saveMoney = async function() {
         type: document.getElementById("reg-money-type").value,
         method: document.getElementById("reg-money-method").value,
         amount: amtVal,
-        category: document.getElementById("reg-money-category").value,
         memo: document.getElementById("reg-money-memo").value,
         updatedAt: new Date()
     };
@@ -984,8 +952,10 @@ window.searchMoney = async function() {
         
         let total = 0, cash = 0, paypay = 0, paypayPt = 0, rakuten = 0;
         let listForTable = [];
-        let categoryExpenses = {};
+        let methodExpenses = {}; // 決済方法ごとの集計に切り替え！
         
+        const methodMap = { 'cash':'現金', 'paypay':'PayPay', 'paypay_point':'PayPay pt', 'rakuten_pay':'楽天ペイ' };
+
         snap.forEach(doc => {
             const d = doc.data();
             const amt = d.type === 'income' ? d.amount : -d.amount;
@@ -1002,9 +972,12 @@ window.searchMoney = async function() {
             
             if(inRange) {
                 listForTable.push({docId: doc.id, ...d});
-                if(d.type === 'expense' && d.category) {
-                    if(!categoryExpenses[d.category]) categoryExpenses[d.category] = 0;
-                    categoryExpenses[d.category] += d.amount;
+                
+                // 支出の場合、決済方法ごとにグラフ用データを集計
+                if(d.type === 'expense') {
+                    const mName = methodMap[d.method] || 'その他';
+                    if(!methodExpenses[mName]) methodExpenses[mName] = 0;
+                    methodExpenses[mName] += d.amount;
                 }
             }
         });
@@ -1015,14 +988,11 @@ window.searchMoney = async function() {
         document.getElementById("money-paypay-pt").innerText = `¥${paypayPt.toLocaleString()}`;
         document.getElementById("money-rakuten").innerText = `¥${rakuten.toLocaleString()}`;
         
-        // 日付降順 (最新が上)
         listForTable.sort((a,b) => b.date.localeCompare(a.date)); 
         window.moneyDataCache = listForTable;
         
         const tbody = document.getElementById("result-money-body");
         tbody.innerHTML = "";
-        
-        const methodMap = { 'cash':'現金', 'paypay':'PayPay', 'paypay_point':'PayPay pt', 'rakuten_pay':'楽天ペイ' };
         
         listForTable.forEach((d, i) => {
             const isInc = d.type === 'income';
@@ -1034,7 +1004,6 @@ window.searchMoney = async function() {
                 <td style="color:${color}">${isInc?'収入':'支出'}</td>
                 <td>${methodMap[d.method]}</td>
                 <td style="color:${color}">${sign}¥${d.amount.toLocaleString()}</td>
-                <td>${d.category||'-'}</td>
                 <td class="col-action">
                     <button onclick="editMoney(${i})">編集</button>
                     <button onclick="deleteMoney(${i})" style="color:red;">削除</button>
@@ -1043,7 +1012,8 @@ window.searchMoney = async function() {
             tbody.appendChild(tr);
         });
         
-        drawMoneyChart(categoryExpenses);
+        // グラフ描画（決済方法ベースで描画）
+        drawMoneyChart(methodExpenses);
         
     } catch(e) { console.error(e); }
 }
@@ -1056,8 +1026,7 @@ window.editMoney = function(index) {
     document.getElementById("reg-money-type").value = d.type||"expense";
     document.getElementById("reg-money-amount").value = d.amount||"";
     document.getElementById("reg-money-method").value = d.method||"cash";
-    document.getElementById("reg-money-category").value = d.category||"";
-    document.getElementById("reg-money-memo").value = d.memo||"";
+    document.getElementById("reg-money-memo").value = d.memo||""; // カテゴリはないのでメモのみ復元
     showScreen('register-money-screen');
 }
 
@@ -1078,12 +1047,12 @@ window.deleteMoney = async function(index) {
     }
 }
 
-function drawMoneyChart(catData) {
+function drawMoneyChart(methodData) {
     const ctx = document.getElementById('money-chart').getContext('2d');
     if(window.moneyChartInstance) window.moneyChartInstance.destroy();
     
-    let labels = Object.keys(catData);
-    let data = Object.values(catData);
+    let labels = Object.keys(methodData);
+    let data = Object.values(methodData);
     if(labels.length===0) { labels=["データなし"]; data=[1]; }
     
     window.moneyChartInstance = new Chart(ctx, {
