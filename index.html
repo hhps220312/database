@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>総合データベース</title>
     <link rel="stylesheet" href="style.css">
-    <!-- グラフ描画用ライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="mode-person">
@@ -14,31 +13,34 @@
         <!-- ナビゲーション -->
         <div class="toolbar">
             <div class="toolbar-group">
-                <span>【人物・他】</span>
-                <button onclick="changeMode('person'); showScreen('search-screen')">検索(人)</button>
-                <button onclick="changeMode('other'); showScreen('search-screen')">検索(人以外)</button>
-                <button onclick="changeMode('person'); showScreen('register-screen')">新規登録(人)</button>
-                <button onclick="changeMode('other'); showScreen('register-screen')">新規登録(人以外)</button>
+                <span>【人物】</span>
+                <button onclick="changeMode('person'); showScreen('search-screen')">検索</button>
+                <button onclick="changeMode('person'); showScreen('register-screen')">登録</button>
             </div>
             <div class="toolbar-group">
-                <span>【本(読書)】</span>
-                <button onclick="changeMode('book'); showScreen('search-book-screen')">本を検索</button>
-                <button onclick="changeMode('book'); showScreen('register-book-screen')">本を登録</button>
+                <span>【組織・モノ】</span>
+                <button onclick="changeMode('other'); showScreen('search-screen')">検索</button>
+                <button onclick="changeMode('other'); showScreen('register-screen')">登録</button>
             </div>
             <div class="toolbar-group">
-                <span>【日 記】</span>
+                <span>【 本 】</span>
+                <button onclick="changeMode('book'); showScreen('search-book-screen')">検索</button>
+                <button onclick="changeMode('book'); showScreen('register-book-screen')">登録</button>
+            </div>
+            <div class="toolbar-group">
+                <span>【日記】</span>
                 <button onclick="changeMode('diary'); showScreen('view-diary-screen')">統計・一覧</button>
-                <button onclick="changeMode('diary'); showScreen('register-diary-screen')">日記を書く</button>
+                <button onclick="changeMode('diary'); showScreen('register-diary-screen')">書く</button>
             </div>
             <div class="toolbar-group">
-                <span>【お 金】</span>
+                <span>【お金】</span>
                 <button onclick="changeMode('money'); showScreen('view-money-screen')">残高・統計</button>
-                <button onclick="changeMode('money'); showScreen('register-money-screen')">収支を登録</button>
+                <button onclick="changeMode('money'); showScreen('register-money-screen')">登録</button>
             </div>
         </div>
 
         <!-- ==============================================
-             1. 人・人以外 検索画面
+             1. 人・組織・モノ 検索画面
         =============================================== -->
         <div id="search-screen" class="screen">
             <div class="search-box">
@@ -69,7 +71,6 @@
                     <label class="person-only">生年月日:</label> <input type="date" id="search-birth" class="person-only">
                     <div class="person-only"></div><div class="person-only"></div>
                     
-                    <!-- ★住所と電話番号を分割 -->
                     <label>電話番号:</label> <input type="text" id="search-phone" placeholder="電話番号">
                     <label>住所:</label> <input type="text" id="search-address" placeholder="住所">
                     
@@ -82,8 +83,8 @@
             </div>
             <div class="result-box">
                 <table id="result-table">
-                    <thead>
-                        <tr><th>ID</th><th>氏名/名称</th><th>性別</th><th>年齢</th><th>操作</th></tr>
+                    <thead id="result-thead">
+                        <!-- JSで動的に切り替え -->
                     </thead>
                     <tbody id="result-body"></tbody>
                 </table>
@@ -91,7 +92,7 @@
         </div>
 
         <!-- ==============================================
-             2. 人・人以外 登録/編集画面
+             2. 人・組織・モノ 登録/編集画面
         =============================================== -->
         <div id="register-screen" class="screen" style="display: none;">
             <input type="hidden" id="edit-doc-id">
@@ -125,8 +126,8 @@
                 
                 <label>電話番号:</label> <input type="text" id="reg-phone" style="grid-column: span 3; width: 95%;">
                 <label>住所:</label> <input type="text" id="reg-address" style="grid-column: span 3; width: 95%;">
-                <label>ドライブリンク:</label> <input type="text" id="reg-drive" placeholder="Google Drive等のURL" style="grid-column: span 3; width: 95%;">
-                <label class="person-only">参考写真URL:</label> <input type="text" id="reg-photo-url" class="person-only" placeholder="画像のリンクURL" style="grid-column: span 3; width: 95%;">
+                <label>ドライブURL:</label> <input type="text" id="reg-drive" placeholder="Google Drive等のURL" style="grid-column: span 3; width: 95%;">
+                <label>参考写真URL:</label> <input type="text" id="reg-photo-url" placeholder="画像のリンクURL" style="grid-column: span 3; width: 95%;">
             </div>
 
             <div class="family-section">
@@ -138,9 +139,12 @@
             <div class="editor-section">
                 <h4>詳細</h4>
                 <div class="editor-toolbar">
-                    <button type="button" onclick="insertText('reg-details', '[[', ']]')">リンク [[]]</button>
-                    <button type="button" onclick="insertText('reg-details', '**', '**')">太字</button>
                     <button type="button" onclick="insertText('reg-details', '== ', ' ==')">見出し</button>
+                    <button type="button" onclick="insertText('reg-details', '**', '**')">太字</button>
+                    <button type="button" onclick="insertText('reg-details', '[[person:', ']]')">リンク(人物)</button>
+                    <button type="button" onclick="insertText('reg-details', '[[other:', ']]')">リンク(組織・ﾓﾉ)</button>
+                    <button type="button" onclick="insertText('reg-details', '[[book:', ']]')">リンク(本)</button>
+                    <button type="button" onclick="insertText('reg-details', '[[diary:', ']]')">リンク(日付)</button>
                 </div>
                 <textarea id="reg-details" class="large-textarea" placeholder="詳細を記入..."></textarea>
             </div>
@@ -148,9 +152,12 @@
             <div class="editor-section">
                 <h4>備考</h4>
                 <div class="editor-toolbar">
-                    <button type="button" onclick="insertText('reg-notes', '[[', ']]')">リンク [[]]</button>
-                    <button type="button" onclick="insertText('reg-notes', '**', '**')">太字</button>
                     <button type="button" onclick="insertText('reg-notes', '== ', ' ==')">見出し</button>
+                    <button type="button" onclick="insertText('reg-notes', '**', '**')">太字</button>
+                    <button type="button" onclick="insertText('reg-notes', '[[person:', ']]')">リンク(人物)</button>
+                    <button type="button" onclick="insertText('reg-notes', '[[other:', ']]')">リンク(組織・ﾓﾉ)</button>
+                    <button type="button" onclick="insertText('reg-notes', '[[book:', ']]')">リンク(本)</button>
+                    <button type="button" onclick="insertText('reg-notes', '[[diary:', ']]')">リンク(日付)</button>
                 </div>
                 <textarea id="reg-notes" class="large-textarea" placeholder="備考を記入..."></textarea>
             </div>
@@ -162,7 +169,7 @@
         </div>
 
         <!-- ==============================================
-             3. 人・人以外・本 詳細表示画面（共通）
+             3. 詳細表示画面（共通）
         =============================================== -->
         <div id="detail-screen" class="screen" style="display: none;">
             <div class="detail-toolbar">
@@ -197,8 +204,9 @@
             <table class="info-table" id="view-book-table" style="display:none;">
                 <tr><th>ジャンル</th><td id="view-book-genre"></td><th>発行年</th><td id="view-book-year"></td></tr>
                 <tr><th>入手方法</th><td id="view-book-acq-type"></td><th>入手先</th><td id="view-book-acq-place"></td></tr>
-                <tr><th>入手日</th><td id="view-book-acq-date"></td><th>読了日数</th><td id="view-book-read-days"></td></tr>
-                <tr><th>読始日</th><td id="view-book-start"></td><th>読終日</th><td id="view-book-end"></td></tr>
+                <tbody id="view-book-history-body">
+                    <!-- JSで履歴行を追加 -->
+                </tbody>
             </table>
 
             <div id="view-family-container" style="display: none;">
@@ -224,7 +232,8 @@
             <div class="search-box">
                 <div class="search-grid">
                     <label>タイトル:</label> <input type="text" id="search-book-title" placeholder="漢字/ひらがな" style="grid-column: span 3; width: 95%;">
-                    <label>発行年:</label> <input type="text" id="search-book-year" placeholder="例: 2023">
+                    <label>読んだ日:</label> <input type="date" id="search-book-read-date" title="読書中の期間に含まれるか検索">
+                    <label>入手先:</label> <input type="text" id="search-book-acq-place" placeholder="書店・図書館など">
                     <label>ジャンル:</label> <input type="text" id="search-book-genre" placeholder="小説など">
                     <label>キーワード:</label> <input type="text" id="search-book-keyword" placeholder="作者・役職・感想から" style="grid-column: span 3; width: 95%;">
                 </div>
@@ -235,7 +244,15 @@
             </div>
             <div class="result-box">
                 <table id="result-book-table">
-                    <thead><tr><th>タイトル</th><th>ジャンル</th><th>状態</th><th>操作</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th class="col-thumb">表紙</th>
+                            <th>タイトル</th>
+                            <th class="col-genre">ジャンル</th>
+                            <th class="col-status">状態</th>
+                            <th class="col-action">操作</th>
+                        </tr>
+                    </thead>
                     <tbody id="result-book-body"></tbody>
                 </table>
             </div>
@@ -249,23 +266,20 @@
             <div class="form-grid">
                 <label>タイトル:</label> <input type="text" id="reg-book-title" style="grid-column: span 3; width: 95%;">
                 <label>ふりがな:</label> <input type="text" id="reg-book-kana" style="grid-column: span 3; width: 95%;">
-                
                 <label>表紙URL:</label> <input type="text" id="reg-book-cover" placeholder="画像リンク" style="grid-column: span 3; width: 95%;">
-                
                 <label>ジャンル:</label> <input type="text" id="reg-book-genre" placeholder="複数可(カンマ区切り等)">
                 <label>発行年:</label> <input type="text" id="reg-book-year" placeholder="例: 2023">
-                
                 <label>入手方法:</label> 
                 <select id="reg-book-acq-type" class="classic-select">
                     <option value="買った">買った</option><option value="借りた">借りた</option>
                 </select>
                 <label>入手先:</label> <input type="text" id="reg-book-acq-place" placeholder="書店・図書館など">
-                
-                <label>入手日:</label> <input type="date" id="reg-book-acq-date">
-                <div></div><div></div>
+            </div>
 
-                <label>読始日:</label> <input type="date" id="reg-book-start">
-                <label>読終日:</label> <input type="date" id="reg-book-end">
+            <div class="family-section">
+                <h4>読書履歴 (複数回対応)</h4>
+                <div id="book-history-list"></div>
+                <button type="button" onclick="addBookHistoryRow()">+ 履歴を追加</button>
             </div>
 
             <div class="family-section">
@@ -276,6 +290,14 @@
 
             <div class="editor-section">
                 <h4>感想・詳細</h4>
+                <div class="editor-toolbar">
+                    <button type="button" onclick="insertText('reg-book-review', '== ', ' ==')">見出し</button>
+                    <button type="button" onclick="insertText('reg-book-review', '**', '**')">太字</button>
+                    <button type="button" onclick="insertText('reg-book-review', '[[person:', ']]')">リンク(人物)</button>
+                    <button type="button" onclick="insertText('reg-book-review', '[[other:', ']]')">リンク(組織・ﾓﾉ)</button>
+                    <button type="button" onclick="insertText('reg-book-review', '[[book:', ']]')">リンク(本)</button>
+                    <button type="button" onclick="insertText('reg-book-review', '[[diary:', ']]')">リンク(日付)</button>
+                </div>
                 <textarea id="reg-book-review" class="large-textarea" placeholder="感想を記入..."></textarea>
             </div>
             
@@ -317,7 +339,15 @@
             <h4 style="margin-top: 15px;">日記一覧</h4>
             <div class="result-box" style="max-height: 200px; overflow-y: auto;">
                 <table id="result-diary-table">
-                    <thead><tr><th>日付</th><th>睡眠</th><th>総勉強</th><th>出来事</th><th>操作</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th style="width:100px;">日付</th>
+                            <th style="width:60px;">睡眠</th>
+                            <th style="width:70px;">総勉強</th>
+                            <th>出来事</th>
+                            <th class="col-action">操作</th>
+                        </tr>
+                    </thead>
                     <tbody id="result-diary-body"></tbody>
                 </table>
             </div>
@@ -349,6 +379,14 @@
 
             <div class="editor-section">
                 <h4>1日の出来事</h4>
+                <div class="editor-toolbar">
+                    <button type="button" onclick="insertText('reg-diary-text', '== ', ' ==')">見出し</button>
+                    <button type="button" onclick="insertText('reg-diary-text', '**', '**')">太字</button>
+                    <button type="button" onclick="insertText('reg-diary-text', '[[person:', ']]')">リンク(人物)</button>
+                    <button type="button" onclick="insertText('reg-diary-text', '[[other:', ']]')">リンク(組織・ﾓﾉ)</button>
+                    <button type="button" onclick="insertText('reg-diary-text', '[[book:', ']]')">リンク(本)</button>
+                    <button type="button" onclick="insertText('reg-diary-text', '[[diary:', ']]')">リンク(日付)</button>
+                </div>
                 <textarea id="reg-diary-text" class="large-textarea" placeholder="今日あったこと..."></textarea>
             </div>
             
@@ -402,7 +440,16 @@
                 <div style="flex: 1.5; display: flex; flex-direction: column;">
                     <div class="result-box" style="flex-grow: 1; overflow-y: auto;">
                         <table id="result-money-table">
-                            <thead><tr><th>日付</th><th>種別</th><th>方法</th><th>金額</th><th>カテゴリ</th><th>操作</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th style="width:90px;">日付</th>
+                                    <th style="width:50px;">種別</th>
+                                    <th style="width:80px;">方法</th>
+                                    <th style="width:90px;">金額</th>
+                                    <th>カテゴリ</th>
+                                    <th class="col-action">操作</th>
+                                </tr>
+                            </thead>
                             <tbody id="result-money-body"></tbody>
                         </table>
                     </div>
