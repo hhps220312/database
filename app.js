@@ -338,7 +338,7 @@ window.viewDetail = function(index, modeType) {
     if (modeType === 'person') {
         const type = data.type || 'person';
         document.getElementById("view-id-rank").innerText = `ID: ${data.studentId || '-'}`;
-        document.getElementById("view-notes-title").innerText = "備考"; // 人物・人以外は備考のみ
+        document.getElementById("view-notes-title").innerText = "備考"; 
         
         if (type === 'person') {
             document.getElementById("view-photo-container").style.display = "flex"; 
@@ -363,7 +363,7 @@ window.viewDetail = function(index, modeType) {
         
     } else if (modeType === 'book') {
         document.getElementById("view-id-rank").innerText = `本`;
-        document.getElementById("view-notes-title").innerText = "感想・備考"; // 本の場合は感想を含める
+        document.getElementById("view-notes-title").innerText = "感想・備考"; 
         
         document.getElementById("view-photo-container").style.display = "flex";
         document.getElementById("view-photo").src = data.bookCoverUrl || "";
@@ -375,7 +375,6 @@ window.viewDetail = function(index, modeType) {
         document.getElementById("view-book-acq-type").innerText = data.acquisitionType || '-';
         document.getElementById("view-book-acq-place").innerText = data.acquisitionPlace || '-';
         
-        // 履歴を独立した表として描画
         const historyContainer = document.getElementById("view-book-history-container");
         let hHtml = '';
         let hList = data.history || [];
@@ -604,6 +603,7 @@ window.searchBooks = async function() {
         
         const sTitle = document.getElementById("search-book-title").value;
         const sReadDate = document.getElementById("search-book-read-date").value;
+        const sAcqDate = document.getElementById("search-book-acq-date").value;
         const sAcqPlace = document.getElementById("search-book-acq-place").value;
         const sGenre = document.getElementById("search-book-genre").value;
         const sKey = document.getElementById("search-book-keyword").value.toLowerCase();
@@ -617,9 +617,11 @@ window.searchBooks = async function() {
             if (sAcqPlace && !(d.acquisitionPlace||"").includes(sAcqPlace)) match = false;
             
             let hList = d.history || [];
-            if(hList.length === 0 && (d.startDate || d.endDate)) {
-                hList = [{ start: d.startDate, end: d.endDate }];
+            if(hList.length === 0 && (d.startDate || d.endDate || d.acquisitionDate)) {
+                hList = [{ acq: d.acquisitionDate, start: d.startDate, end: d.endDate }];
             }
+            
+            // 読んだ日の検索
             if (sReadDate) {
                 let readMatch = false;
                 for (let h of hList) {
@@ -627,6 +629,15 @@ window.searchBooks = async function() {
                     if (h.start && h.end && sReadDate >= h.start && sReadDate <= h.end) { readMatch = true; break; }
                 }
                 if(!readMatch) match = false;
+            }
+            
+            // 入手日の検索
+            if (sAcqDate) {
+                let acqMatch = false;
+                for (let h of hList) {
+                    if (h.acq && h.acq === sAcqDate) { acqMatch = true; break; }
+                }
+                if(!acqMatch) match = false;
             }
             
             if (sKey) {
@@ -639,17 +650,29 @@ window.searchBooks = async function() {
         results.sort((a, b) => {
             let kanaA = (a.bookTitleKana || a.bookTitle || "").toString();
             let kanaB = (b.bookTitleKana || b.bookTitle || "").toString();
-            let cmp = kanaA.localeCompare(kanaB, 'ja', { numeric: true });
-            if (cmp !== 0) {
-                let m1 = kanaA.match(/^(.*?)([上中下])$/);
-                let m2 = kanaB.match(/^(.*?)([上中下])$/);
-                if (m1 && m2 && m1[1] === m2[1]) {
-                    const w = {'上':1, '中':2, '下':3};
-                    return w[m1[2]] - w[m2[2]];
-                }
-                return cmp;
+            
+            // 間に空白があったり(上)のようにカッコがついていても判定できる賢い正規表現
+            let regex = /^(.*?)\s*[\(（]?([上中下])[巻]?[\)）]?\s*$/;
+            let m1 = kanaA.match(regex);
+            let m2 = kanaB.match(regex);
+
+            if (m1 && m2 && m1[1] === m2[1]) {
+                const w = {'上':1, '中':2, '下':3};
+                return w[m1[2]] - w[m2[2]];
             }
-            return 0;
+            
+            // ふりがなに上中下がなく、タイトル側にある場合のフォロー
+            let titleA = (a.bookTitle || "").toString();
+            let titleB = (b.bookTitle || "").toString();
+            let t1 = titleA.match(regex);
+            let t2 = titleB.match(regex);
+            
+            if (t1 && t2 && t1[1] === t2[1]) {
+                const w = {'上':1, '中':2, '下':3};
+                return w[t1[2]] - w[t2[2]];
+            }
+
+            return kanaA.localeCompare(kanaB, 'ja', { numeric: true });
         });
 
         window.bookResults = results;
