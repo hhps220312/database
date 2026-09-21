@@ -200,14 +200,14 @@
                 <tr><th>住所</th><td colspan="3" id="view-address"></td></tr>
             </table>
 
-            <!-- 本のテーブル -->
+            <!-- 本の基本情報テーブル -->
             <table class="info-table" id="view-book-table" style="display:none;">
                 <tr><th>ジャンル</th><td id="view-book-genre"></td><th>発行年</th><td id="view-book-year"></td></tr>
                 <tr><th>入手方法</th><td id="view-book-acq-type"></td><th>入手先</th><td id="view-book-acq-place"></td></tr>
-                <tbody id="view-book-history-body">
-                    <!-- JSで履歴行を追加 -->
-                </tbody>
             </table>
+            
+            <!-- 本の読書履歴コンテナ (JSで動的に表を生成) -->
+            <div id="view-book-history-container" style="display: none;"></div>
 
             <div id="view-family-container" style="display: none;">
                 <h3 class="section-title" id="view-family-title">関連 / 役職</h3>
@@ -220,7 +220,7 @@
             </div>
 
             <div id="view-notes-container" style="display: none;">
-                <h3 class="section-title">備考 / 感想</h3>
+                <h3 class="section-title" id="view-notes-title">備考</h3>
                 <div id="view-notes" class="wiki-content"></div>
             </div>
         </div>
@@ -442,14 +442,12 @@
                     </div>
                 </div>
                 <div style="flex: 1.5; display: flex; flex-direction: column;">
-                    <!-- はみ出し防止のため overflow-x: auto を追加し、列の固定幅指定を解除 -->
                     <div class="result-box" style="flex-grow: 1; overflow-y: auto; overflow-x: auto;">
                         <table id="result-money-table">
                             <thead>
                                 <tr>
                                     <th style="width:90px;">日付</th>
                                     <th style="width:50px;">種別</th>
-                                    <!-- 方法と金額は幅を自動調整させる -->
                                     <th>方法</th>
                                     <th>金額</th>
                                     <th class="col-action">操作</th> 
