@@ -206,7 +206,7 @@
                 <tr><th>入手方法</th><td id="view-book-acq-type"></td><th>入手先</th><td id="view-book-acq-place"></td></tr>
             </table>
             
-            <!-- 本の読書履歴コンテナ (JSで動的に表を生成) -->
+            <!-- 本の読書履歴コンテナ -->
             <div id="view-book-history-container" style="display: none;"></div>
 
             <div id="view-family-container" style="display: none;">
@@ -234,10 +234,10 @@
                     <label>タイトル:</label> <input type="text" id="search-book-title" placeholder="漢字/ひらがな" style="grid-column: span 3; width: 95%;">
                     
                     <label>読んだ日:</label> <input type="date" id="search-book-read-date" title="読書中の期間に含まれるか検索">
-                    <label>入手先:</label> <input type="text" id="search-book-acq-place" placeholder="書店・図書館など">
+                    <label>入手日:</label> <input type="date" id="search-book-acq-date">
                     
+                    <label>入手先:</label> <input type="text" id="search-book-acq-place" placeholder="書店・図書館など">
                     <label>ジャンル:</label> <input type="text" id="search-book-genre" placeholder="小説など">
-                    <div></div><div></div> 
                     
                     <label>キーワード:</label> <input type="text" id="search-book-keyword" placeholder="作者・役職・感想から" style="grid-column: span 3; width: 95%;">
                 </div>
