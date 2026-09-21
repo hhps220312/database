@@ -1,6 +1,6 @@
 body {
     background-color: #008080; 
-    font-family: "MS Mincho", "ＭＳ 明朝", serif; 
+    font-family: "Meiryo", "メイリオ", "MS UI Gothic", sans-serif; /* 少しモダンかつ読みやすいフォントに */
     margin: 20px;
     font-size: 14px;
 }
@@ -12,7 +12,7 @@ body {
     border-left: 2px solid #ffffff;
     border-bottom: 2px solid #404040;
     border-right: 2px solid #404040;
-    padding: 2px;
+    padding: 4px;
     width: 900px;
     margin: 0 auto;
 }
@@ -21,23 +21,24 @@ body {
     background-color: #000080;
     color: white;
     font-weight: bold;
-    padding: 3px 5px;
+    padding: 4px 6px;
     font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", sans-serif;
 }
 
 .toolbar {
-    padding: 5px;
+    padding: 6px;
     border-bottom: 1px solid #808080;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 .toolbar-group {
     border: 1px solid #a0a0a0;
-    padding: 3px 5px;
+    padding: 4px 6px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    background-color: #e2dfdb;
 }
 .toolbar-group span {
     font-size: 0.9em;
@@ -56,7 +57,8 @@ button {
     cursor: pointer;
     font-family: inherit;
     color: black;
-    vertical-align: middle; 
+    vertical-align: middle;
+    white-space: nowrap; /* ボタンテキストが改行されないように */
 }
 
 button:active {
@@ -75,9 +77,10 @@ input[type="text"], input[type="date"], input[type="time"], input[type="number"]
     border-left: 2px solid #404040;
     border-bottom: 2px solid #ffffff;
     border-right: 2px solid #ffffff;
-    padding: 3px;
+    padding: 4px;
     font-family: inherit;
     background-color: white;
+    box-sizing: border-box;
 }
 
 .classic-select {
@@ -87,8 +90,8 @@ input[type="text"], input[type="date"], input[type="time"], input[type="number"]
     border-radius: 0;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4z" fill="%23000"/></svg>');
     background-repeat: no-repeat;
-    background-position: right 2px center;
-    padding-right: 16px; 
+    background-position: right 4px center;
+    padding-right: 18px; 
 }
 
 .screen {
@@ -109,20 +112,73 @@ input[type="text"], input[type="date"], input[type="time"], input[type="number"]
 .search-grid label, .form-grid label { text-align: left; }
 .search-actions { text-align: right; margin-bottom: 10px; }
 .large-textarea { width: 98%; height: 150px; margin-top: 5px; }
-.editor-section { margin-top: 15px; }
 
+.editor-section { margin-top: 15px; }
+.editor-toolbar {
+    margin-bottom: 5px;
+    display: flex;
+    gap: 5px;
+}
+.editor-toolbar button {
+    padding: 2px 8px;
+    font-size: 0.9em;
+}
+
+/* =========================================
+   テーブル共通レイアウト
+========================================= */
 table {
     width: 100%;
+    table-layout: fixed; /* 列幅を厳密に固定 */
     border-collapse: collapse;
     background-color: white;
     border: 2px solid #808080;
 }
-th, td { border: 1px solid #c0c0c0; padding: 4px; text-align: left; }
-th { background-color: #d4d0c8; border-top: 1px solid white; border-left: 1px solid white; }
+th, td { 
+    border: 1px solid #c0c0c0; 
+    padding: 6px; 
+    text-align: left; 
+    white-space: nowrap; /* テキストの折り返し禁止 */
+    overflow: hidden; 
+    text-overflow: ellipsis; /* はみ出たら「…」にする */
+    vertical-align: middle;
+}
+th { 
+    background-color: #d4d0c8; 
+    border-top: 1px solid white; 
+    border-left: 1px solid white; 
+    text-align: center;
+}
 
-.info-table th { width: 15%; }
-.info-table td { width: 35%; }
+/* 各種カラム幅の指定クラス */
+.col-id { width: 60px; text-align: center; }
+.col-thumb { width: 60px; text-align: center; }
+.col-gender { width: 50px; text-align: center; }
+.col-age { width: 50px; text-align: center; }
+.col-genre { width: 100px; text-align: center; }
+.col-status { width: 70px; text-align: center; }
+.col-action { width: 100px; text-align: center; } /* 編集・削除ボタンが入るため余裕を */
 
+.info-table th { width: 18%; }
+.info-table td { width: 32%; white-space: normal; } /* 詳細のテーブルは折り返し許可 */
+
+/* サムネイル画像 */
+.thumb-img {
+    width: 40px;
+    height: 50px;
+    object-fit: cover;
+    background-color: #eee;
+    border: 1px solid #aaa;
+    display: block;
+    margin: 0 auto;
+}
+
+/* 状態の色 */
+.status-unread { color: #888; font-weight: bold; }
+.status-reading { color: #008000; font-weight: bold; }
+.status-read { color: #d32f2f; font-weight: bold; }
+
+/* プロフィール・詳細画面 */
 .profile-header {
     display: flex;
     margin-bottom: 15px;
@@ -130,7 +186,6 @@ th { background-color: #d4d0c8; border-top: 1px solid white; border-left: 1px so
     background: white;
     padding: 10px;
 }
-
 .photo-container {
     width: 120px;
     height: 150px;
@@ -154,22 +209,18 @@ th { background-color: #d4d0c8; border-top: 1px solid white; border-left: 1px so
     margin-bottom: 10px;
 }
 
-.wiki-content { background: white; border: 2px inset #ffffff; padding: 10px; min-height: 50px; }
+.wiki-content { background: white; border: 2px inset #ffffff; padding: 10px; min-height: 50px; white-space: pre-wrap; line-height: 1.5; }
 .wiki-content h3 { border-bottom: 1px solid #c0c0c0; font-size: 1.1em; margin-top: 15px; margin-bottom: 5px; }
 .wiki-content a { color: blue; text-decoration: underline; cursor: pointer; }
 
-.family-row, .study-row { margin-bottom: 5px; }
-.family-row input, .study-row input, .study-row select { margin-right: 5px; }
+.family-row, .study-row, .history-row { margin-bottom: 6px; }
+.family-row input, .study-row input, .study-row select, .history-row input { margin-right: 5px; }
 
 /* =========================================
    モードごとの表示切替用設定
 ========================================= */
-/* 人モード */
 body.mode-person .other-only { display: none !important; }
-/* 人以外モード */
 body.mode-other .person-only { display: none !important; }
-
-/* 本や日記、お金など、人/人以外以外のモードのときは両方消す */
 body.mode-book .person-only, body.mode-book .other-only,
 body.mode-diary .person-only, body.mode-diary .other-only,
 body.mode-money .person-only, body.mode-money .other-only {
