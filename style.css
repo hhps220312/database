@@ -1,6 +1,6 @@
 body {
     background-color: #008080; 
-    font-family: "Meiryo", "メイリオ", "MS UI Gothic", sans-serif; /* 少しモダンかつ読みやすいフォントに */
+    font-family: "MS Mincho", "ＭＳ 明朝", serif; /* 明朝体に完全に戻しました！ */
     margin: 20px;
     font-size: 14px;
 }
@@ -58,7 +58,7 @@ button {
     font-family: inherit;
     color: black;
     vertical-align: middle;
-    white-space: nowrap; /* ボタンテキストが改行されないように */
+    white-space: nowrap; 
 }
 
 button:active {
@@ -129,7 +129,7 @@ input[type="text"], input[type="date"], input[type="time"], input[type="number"]
 ========================================= */
 table {
     width: 100%;
-    table-layout: fixed; /* 列幅を厳密に固定 */
+    table-layout: fixed; 
     border-collapse: collapse;
     background-color: white;
     border: 2px solid #808080;
@@ -138,9 +138,9 @@ th, td {
     border: 1px solid #c0c0c0; 
     padding: 6px; 
     text-align: left; 
-    white-space: nowrap; /* テキストの折り返し禁止 */
+    white-space: nowrap; 
     overflow: hidden; 
-    text-overflow: ellipsis; /* はみ出たら「…」にする */
+    text-overflow: ellipsis; /* 長いタイトルなどを「…」にする */
     vertical-align: middle;
 }
 th { 
@@ -155,12 +155,12 @@ th {
 .col-thumb { width: 60px; text-align: center; }
 .col-gender { width: 50px; text-align: center; }
 .col-age { width: 50px; text-align: center; }
-.col-genre { width: 100px; text-align: center; }
+.col-genre { width: 140px; text-align: center; } /* ジャンルを幅広に！ */
 .col-status { width: 70px; text-align: center; }
-.col-action { width: 100px; text-align: center; } /* 編集・削除ボタンが入るため余裕を */
+.col-action { width: 130px; text-align: center; } /* 編集・削除ボタンが並ぶように幅広に！ */
 
 .info-table th { width: 18%; }
-.info-table td { width: 32%; white-space: normal; } /* 詳細のテーブルは折り返し許可 */
+.info-table td { width: 32%; white-space: normal; }
 
 /* サムネイル画像 */
 .thumb-img {
