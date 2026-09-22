@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"; // where を追加
 
 const firebaseConfig = {
     apiKey: "AIzaSyBqR8bkOF0a7RaL_Rkaz7MIg56wcWfoZek",
@@ -16,6 +16,110 @@ const db = getFirestore(app);
 
 window.diaryChartInstance = null;
 window.moneyChartInstance = null;
+
+// ==========================================
+// 既存データ自動読み込み (オートコンプリート) 処理
+// ==========================================
+function showLoading(show) {
+    document.getElementById("loading-overlay").style.display = show ? "flex" : "none";
+}
+
+async function checkAndLoadData(collectionName, fieldName, value, type) {
+    if (!value || value.trim() === "") return;
+    showLoading(true);
+    try {
+        let q;
+        if (type === 'person' || type === 'other') {
+            q = query(collection(db, collectionName), where(fieldName, "==", value.trim()), where("type", "==", window.currentMode));
+        } else {
+            q = query(collection(db, collectionName), where(fieldName, "==", value.trim()));
+        }
+        
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            const docSnap = snap.docs[0];
+            const d = docSnap.data();
+            d.docId = docSnap.id;
+            
+            if (type === 'person' || type === 'other') {
+                document.getElementById("edit-doc-id").value = d.docId;
+                document.getElementById("reg-phone").value = d.phone||"";
+                document.getElementById("reg-address").value = d.address||"";
+                document.getElementById("reg-drive").value = d.driveLink||"";
+                document.getElementById("reg-details").value = d.details||"";
+                document.getElementById("reg-notes").value = d.notes||"";
+                if (window.currentMode === 'person') {
+                    document.getElementById("reg-lastname").value = d.lastname||"";
+                    document.getElementById("reg-lastname-kana").value = d.lastnameKana||"";
+                    document.getElementById("reg-firstname").value = d.firstname||"";
+                    document.getElementById("reg-firstname-kana").value = d.firstnameKana||"";
+                    document.getElementById("reg-gender").value = d.gender||"不明";
+                    document.getElementById("reg-blood").value = d.blood||"不明";
+                    document.getElementById("reg-birth").value = d.birth||"";
+                    document.getElementById("reg-photo-url").value = d.photoUrl||"";
+                } else {
+                    document.getElementById("reg-other-name").value = d.otherName||"";
+                    document.getElementById("reg-other-name-kana").value = d.otherNameKana||"";
+                }
+                document.getElementById("family-list").innerHTML = "";
+                if(d.family) d.family.forEach(f => addFamilyRow(f.relation, f.customRelation, f.lastname, f.firstname, f.otherName));
+                
+                const btn = document.querySelector("#register-screen .save-btn");
+                if (btn) btn.innerText = "上書き保存する";
+
+            } else if (type === 'book') {
+                document.getElementById("edit-book-id").value = d.docId;
+                document.getElementById("reg-book-kana").value = d.bookTitleKana||"";
+                document.getElementById("reg-book-cover").value = d.bookCoverUrl||"";
+                document.getElementById("reg-book-genre").value = d.genres||"";
+                document.getElementById("reg-book-year").value = d.publishYear||"";
+                document.getElementById("reg-book-acq-type").value = d.acquisitionType||"買った";
+                document.getElementById("reg-book-acq-place").value = d.acquisitionPlace||"";
+                
+                document.getElementById("book-history-list").innerHTML = "";
+                let hList = d.history || [];
+                if(hList.length === 0 && (d.acquisitionDate || d.startDate || d.endDate)) {
+                    hList = [{ acq: d.acquisitionDate, start: d.startDate, end: d.endDate }];
+                }
+                if(hList.length === 0) hList = [{}];
+                hList.forEach(h => addBookHistoryRow(h.acq||"", h.start||"", h.end||""));
+
+                document.getElementById("reg-book-review").value = d.review||"";
+                document.getElementById("credit-list").innerHTML = "";
+                if(d.credits) d.credits.forEach(c => addCreditRow(c.role, c.name));
+                
+                const btn = document.querySelector("#register-book-screen .save-btn");
+                if (btn) btn.innerText = "上書き保存する";
+
+            } else if (type === 'diary') {
+                document.getElementById("edit-diary-id").value = d.docId;
+                document.getElementById("reg-diary-sleep").value = d.sleepTime||"";
+                document.getElementById("reg-diary-wake").value = d.wakeTime||"";
+                document.getElementById("reg-diary-school-in").value = d.schoolIn||"";
+                document.getElementById("reg-diary-school-out").value = d.schoolOut||"";
+                document.getElementById("reg-diary-cram-in").value = d.cramIn||"";
+                document.getElementById("reg-diary-cram-out").value = d.cramOut||"";
+                document.getElementById("reg-diary-text").value = d.diaryText||"";
+                document.getElementById("study-list").innerHTML = "";
+                (d.studies||[]).forEach(st => addStudyRow(st.start, st.end, st.sub, st.other));
+                
+                const btn = document.querySelector("#register-diary-screen .save-btn");
+                if (btn) btn.innerText = "上書き保存する";
+            }
+        }
+    } catch(e) {
+        console.error(e);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// 入力欄からフォーカスが外れた時（changeイベント）にチェックを発動
+document.getElementById("reg-id").addEventListener("change", (e) => checkAndLoadData("persons", "studentId", e.target.value, window.currentMode));
+document.getElementById("reg-book-title").addEventListener("change", (e) => checkAndLoadData("books", "bookTitle", e.target.value, 'book'));
+document.getElementById("reg-diary-date").addEventListener("change", (e) => checkAndLoadData("diaries", "date", e.target.value, 'diary'));
+// ==========================================
+
 
 function calculateAge(birthDateString) {
     if (!birthDateString) return "-";
@@ -106,7 +210,7 @@ function clearForm() {
     document.querySelectorAll('#register-screen select').forEach(el => el.selectedIndex = 0);
     document.getElementById("family-list").innerHTML = "";
     const saveBtn = document.querySelector("#register-screen .save-btn");
-    if (saveBtn) saveBtn.innerText = "保存する";
+    if (saveBtn) saveBtn.innerText = "保存する"; // ボタンの文字をリセット
 }
 window.clearSearch = function() {
     document.querySelectorAll('#search-screen input').forEach(el => el.value = "");
@@ -522,9 +626,12 @@ function clearBookForm() {
     document.getElementById("credit-list").innerHTML = "";
     document.getElementById("book-history-list").innerHTML = "";
     addBookHistoryRow(); 
+    const saveBtn = document.querySelector("#register-book-screen .save-btn");
+    if (saveBtn) saveBtn.innerText = "保存する"; // ボタンの文字をリセット
 }
 window.clearSearchBook = function() {
     document.querySelectorAll('#search-book-screen input').forEach(el => el.value = "");
+    document.querySelectorAll('#search-book-screen select').forEach(el => el.selectedIndex = 0);
     document.getElementById("result-book-body").innerHTML = "";
 }
 
@@ -604,6 +711,7 @@ window.searchBooks = async function() {
         const sTitle = document.getElementById("search-book-title").value;
         const sReadDate = document.getElementById("search-book-read-date").value;
         const sAcqDate = document.getElementById("search-book-acq-date").value;
+        const sStatus = document.getElementById("search-book-status").value; // 状態検索
         const sAcqPlace = document.getElementById("search-book-acq-place").value;
         const sGenre = document.getElementById("search-book-genre").value;
         const sKey = document.getElementById("search-book-keyword").value.toLowerCase();
@@ -612,16 +720,25 @@ window.searchBooks = async function() {
         snap.forEach(doc => {
             const d = doc.data();
             let match = true;
-            if (sTitle && !((d.bookTitle||"").includes(sTitle) || (d.bookTitleKana||"").includes(toHiragana(sTitle)))) match = false;
-            if (sGenre && !(d.genres||"").includes(sGenre)) match = false;
-            if (sAcqPlace && !(d.acquisitionPlace||"").includes(sAcqPlace)) match = false;
             
+            // 状態の計算 (ソートやフィルタリングで使うため保存)
+            let status = "未読";
             let hList = d.history || [];
             if(hList.length === 0 && (d.startDate || d.endDate || d.acquisitionDate)) {
                 hList = [{ acq: d.acquisitionDate, start: d.startDate, end: d.endDate }];
             }
+            if (hList.length > 0) {
+                const latest = hList[hList.length - 1];
+                if (latest.end) { status = "読了"; }
+                else if (latest.start) { status = "読書中"; }
+            }
+            d._computedStatus = status;
+
+            if (sTitle && !((d.bookTitle||"").includes(sTitle) || (d.bookTitleKana||"").includes(toHiragana(sTitle)))) match = false;
+            if (sGenre && !(d.genres||"").includes(sGenre)) match = false;
+            if (sAcqPlace && !(d.acquisitionPlace||"").includes(sAcqPlace)) match = false;
+            if (sStatus && d._computedStatus !== sStatus) match = false; // 状態での絞り込み
             
-            // 読んだ日の検索
             if (sReadDate) {
                 let readMatch = false;
                 for (let h of hList) {
@@ -631,7 +748,6 @@ window.searchBooks = async function() {
                 if(!readMatch) match = false;
             }
             
-            // 入手日の検索
             if (sAcqDate) {
                 let acqMatch = false;
                 for (let h of hList) {
@@ -648,10 +764,15 @@ window.searchBooks = async function() {
         });
         
         results.sort((a, b) => {
+            // まずは「読書中 > 未読 > 読了」の順番で並び替え！
+            const statusOrder = { "読書中": 1, "未読": 2, "読了": 3 };
+            if (statusOrder[a._computedStatus] !== statusOrder[b._computedStatus]) {
+                return statusOrder[a._computedStatus] - statusOrder[b._computedStatus];
+            }
+
+            // 状態が同じ場合は今まで通りのタイトルの賢い並び替え
             let kanaA = (a.bookTitleKana || a.bookTitle || "").toString();
             let kanaB = (b.bookTitleKana || b.bookTitle || "").toString();
-            
-            // 間に空白があったり(上)のようにカッコがついていても判定できる賢い正規表現
             let regex = /^(.*?)\s*[\(（]?([上中下])[巻]?[\)）]?\s*$/;
             let m1 = kanaA.match(regex);
             let m2 = kanaB.match(regex);
@@ -660,13 +781,10 @@ window.searchBooks = async function() {
                 const w = {'上':1, '中':2, '下':3};
                 return w[m1[2]] - w[m2[2]];
             }
-            
-            // ふりがなに上中下がなく、タイトル側にある場合のフォロー
             let titleA = (a.bookTitle || "").toString();
             let titleB = (b.bookTitle || "").toString();
             let t1 = titleA.match(regex);
             let t2 = titleB.match(regex);
-            
             if (t1 && t2 && t1[1] === t2[1]) {
                 const w = {'上':1, '中':2, '下':3};
                 return w[t1[2]] - w[t2[2]];
@@ -677,17 +795,9 @@ window.searchBooks = async function() {
 
         window.bookResults = results;
         results.forEach((d, i) => {
-            let status = "未読";
             let statusClass = "status-unread";
-            let hList = d.history || [];
-            if (hList.length > 0) {
-                const latest = hList[hList.length - 1];
-                if (latest.end) { status = "読了"; statusClass = "status-read"; }
-                else if (latest.start) { status = "読書中"; statusClass = "status-reading"; }
-            } else {
-                if (d.endDate) { status = "読了"; statusClass = "status-read"; }
-                else if (d.startDate) { status = "読書中"; statusClass = "status-reading"; }
-            }
+            if (d._computedStatus === "読了") statusClass = "status-read";
+            if (d._computedStatus === "読書中") statusClass = "status-reading";
             
             const photoSrc = d.bookCoverUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='12'%3E画像なし%3C/text%3E%3C/svg%3E";
             const imgTag = `<img src="${photoSrc}" class="thumb-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 100 100\\'%3E%3Crect width=\\'100\\' height=\\'100\\' fill=\\'%23e0e0e0\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'12\\'%3E画像なし%3C/text%3E%3C/svg%3E'">`;
@@ -697,7 +807,7 @@ window.searchBooks = async function() {
                 <td class="col-thumb">${imgTag}</td>
                 <td>${d.bookTitle||'無題'}</td>
                 <td class="col-genre">${d.genres||'-'}</td>
-                <td class="col-status"><span class="${statusClass}">${status}</span></td>
+                <td class="col-status"><span class="${statusClass}">${d._computedStatus}</span></td>
                 <td class="col-action"><button onclick="viewDetail(${i}, 'book')">表示</button></td>
             `;
             tbody.appendChild(tr);
@@ -712,6 +822,8 @@ function clearDiaryForm() {
     document.getElementById("edit-diary-id").value = "";
     document.querySelectorAll('#register-diary-screen input, #register-diary-screen textarea').forEach(el => el.value = "");
     document.getElementById("study-list").innerHTML = "";
+    const saveBtn = document.querySelector("#register-diary-screen .save-btn");
+    if (saveBtn) saveBtn.innerText = "保存する"; // ボタンの文字をリセット
 }
 
 window.addStudyRow = function(start="", end="", sub="", otherSub="") {
