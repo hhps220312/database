@@ -7,6 +7,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="mode-person">
+    <!-- データ取得中のローディング画面 -->
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,128,128,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #d4d0c8; padding: 20px 40px; border-bottom: 2px solid #404040; border-right: 2px solid #404040; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; font-weight: bold; font-size: 16px; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
+            データ取得中...
+        </div>
+    </div>
+
     <div class="window">
         <div class="title-bar">総合データベースシステム</div>
         
@@ -97,7 +104,8 @@
         <div id="register-screen" class="screen" style="display: none;">
             <input type="hidden" id="edit-doc-id">
             <div class="form-grid">
-                <label>ID:</label> <input type="text" id="reg-id">
+                <!-- ID入力時に既存データを自動検索！ -->
+                <label>ID:</label> <input type="text" id="reg-id" placeholder="入力後、自動で検索します">
                 <div></div><div></div>
 
                 <label class="person-only">苗字:</label> <input type="text" id="reg-lastname" class="person-only">
@@ -236,8 +244,18 @@
                     <label>読んだ日:</label> <input type="date" id="search-book-read-date" title="読書中の期間に含まれるか検索">
                     <label>入手日:</label> <input type="date" id="search-book-acq-date">
                     
+                    <!-- 状態検索を追加！ -->
+                    <label>状態:</label>
+                    <select id="search-book-status" class="classic-select">
+                        <option value="">すべて</option>
+                        <option value="読書中">読書中</option>
+                        <option value="未読">未読</option>
+                        <option value="読了">読了</option>
+                    </select>
                     <label>入手先:</label> <input type="text" id="search-book-acq-place" placeholder="書店・図書館など">
+                    
                     <label>ジャンル:</label> <input type="text" id="search-book-genre" placeholder="小説など">
+                    <div></div><div></div> 
                     
                     <label>キーワード:</label> <input type="text" id="search-book-keyword" placeholder="作者・役職・感想から" style="grid-column: span 3; width: 95%;">
                 </div>
@@ -268,7 +286,8 @@
         <div id="register-book-screen" class="screen" style="display: none;">
             <input type="hidden" id="edit-book-id">
             <div class="form-grid">
-                <label>タイトル:</label> <input type="text" id="reg-book-title" style="grid-column: span 3; width: 95%;">
+                <!-- タイトル入力時に既存データを自動検索！ -->
+                <label>タイトル:</label> <input type="text" id="reg-book-title" placeholder="入力後、自動で検索します" style="grid-column: span 3; width: 95%;">
                 <label>ふりがな:</label> <input type="text" id="reg-book-kana" style="grid-column: span 3; width: 95%;">
                 <label>表紙URL:</label> <input type="text" id="reg-book-cover" placeholder="画像リンク" style="grid-column: span 3; width: 95%;">
                 <label>ジャンル:</label> <input type="text" id="reg-book-genre" placeholder="複数可(カンマ区切り等)">
@@ -363,7 +382,8 @@
         <div id="register-diary-screen" class="screen" style="display: none;">
             <input type="hidden" id="edit-diary-id">
             <div class="form-grid" style="grid-template-columns: 80px 1fr 80px 1fr;">
-                <label>日付:</label> <input type="date" id="reg-diary-date" style="grid-column: span 3; width: 150px;">
+                <!-- 日付入力時に既存データを自動検索！ -->
+                <label>日付:</label> <input type="date" id="reg-diary-date" style="grid-column: span 3; width: 150px;" title="入力後、自動で検索します">
                 
                 <label>就寝時刻:</label> <input type="time" id="reg-diary-sleep" title="昨晩から今日の朝にかけて寝た時刻">
                 <label>起床時刻:</label> <input type="time" id="reg-diary-wake">
@@ -466,6 +486,7 @@
         <div id="register-money-screen" class="screen" style="display: none;">
             <input type="hidden" id="edit-money-id">
             <div class="form-grid">
+                <!-- お金だけは自動検索なし -->
                 <label>日付:</label> <input type="date" id="reg-money-date">
                 <label>収支:</label> 
                 <select id="reg-money-type" class="classic-select">
