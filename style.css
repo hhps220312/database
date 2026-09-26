@@ -1,76 +1,228 @@
-body{font-family:sans-serif;margin:0;padding:0;background-color:#f6f6f6;color:#222}
-#mw-page-base{height:5em;background-color:#f6f6f6}
-#mw-head-base{margin-top:-5em;margin-left:11em;height:5em}
-/* content に clearfix の役割を持たせる */
-#content{margin-left:11em;padding:1.25em 1.5em 1.5em 1.5em;background-color:#ffffff;border:1px solid #a7d7f9;border-right:none;border-top:none;min-height:85vh}
-#content::after{content:"";display:block;clear:both}
+body {
+    background-color: #008080; 
+    font-family: "MS Mincho", "ＭＳ 明朝", serif; 
+    margin: 20px;
+    font-size: 14px;
+}
 
-#firstHeading{border-bottom:1px solid #a2a9b1;padding-bottom:0.25em;margin-top:0;font-family:"Linux Libertine","Georgia","Times",serif;font-weight:normal}
-#mw-head{position:absolute;top:0;right:0;width:100%}
-#p-personal{position:absolute;top:0;right:0.75em;font-size:0.75em}
-#p-personal ul{list-style:none;margin:0;padding:0;display:flex;align-items:center}
-#p-personal li{margin-left:1em;display:flex;align-items:center;color:#555;padding-top:0.5em}
-#p-personal a{color:#0645ad;text-decoration:none}
-#p-personal a:hover{text-decoration:underline}
-#pt-anonuserpage svg{margin-right:4px;color:#555}
-#right-navigation{float:right;margin-top:2.5em}
-#p-views{float:left;margin-right:0.5em}
-#p-views ul{list-style:none;margin:0;padding:0;display:flex}
-#p-views li{margin:0;padding:0;background-image:linear-gradient(to bottom,#ffffff 0%,#f6f6f6 100%);border:1px solid #a7d7f9;border-bottom:0;margin-right:0.2em;border-top-left-radius:4px;border-top-right-radius:4px}
-#p-views li.selected{background:#ffffff;border-bottom:1px solid #ffffff;margin-bottom:-1px;z-index:2;position:relative}
-#p-views li a{display:inline-block;padding:0.8em 1em;color:#0645ad;text-decoration:none;font-size:0.8em}
-#p-views li.selected a{color:#222;font-weight:bold}
-#p-search{float:left;margin-top:0.5em;margin-right:1em;position:relative}
-#simpleSearch{background-color:#fff;border:1px solid #a7d7f9;border-radius:2px;display:flex;align-items:center;width:16vw;min-width:180px}
-#simpleSearch input{border:none;padding:0.4em 0.6em;width:100%;outline:none;font-size:0.8em}
-#simpleSearch button{background:none;border:none;cursor:pointer;padding:0.4em;color:#0645ad}
-#search-suggest{display:none;position:absolute;top:100%;left:0;width:100%;background:#fff;border:1px solid #a7d7f9;list-style:none;margin:0;padding:0;z-index:100;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
-#search-suggest li{padding:0.5em;font-size:0.8em;cursor:pointer;border-bottom:1px solid #eee}
-#search-suggest li:hover{background:#eaf3ff}
-#mw-panel{position:absolute;top:0;width:11em;left:0}
-#p-logo{width:10em;height:10em;margin:0 auto 1em auto}
-#p-logo a{display:block;width:100%;height:100%;background-repeat:no-repeat;background-position:center center;background-size:contain;text-decoration:none}
-.portal{margin:0 0.6em 0 0.7em}
-.portal ul{list-style:none;margin:0;padding:0;border-top:1px solid #c8ccd1;padding-top:0.5em}
-.portal li{margin-bottom:0.2em;font-size:0.75em;padding-left:0.5em}
-.portal li a{color:#0645ad;text-decoration:none}
-.portal li a:hover{text-decoration:underline}
+/* ウィンドウ全体 */
+.window {
+    background-color: #d4d0c8;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #404040;
+    border-right: 2px solid #404040;
+    padding: 4px;
+    width: 900px;
+    margin: 0 auto;
+}
 
-.infobox{float:right;width:300px;background:#f8f9fa;border:1px solid #a2a9b1;padding:0.5em;margin:0 0 1em 1em;font-size:0.9em}
-.infobox img{max-width:100%;height:auto;display:block;margin:0 auto}
-.info-title{text-align:center;font-weight:bold;font-size:1.2em;margin-bottom:0.2em}
-.info-subtitle{text-align:center;font-size:0.8em;color:#555;margin-bottom:0.5em}
-.info-caption{text-align:center;font-size:0.8em;color:#333;margin-top:0.3em;margin-bottom:0.5em}
-.info-section{background:#e6e6fa;font-weight:bold;text-align:center;padding:0.3em;margin:0.5em 0}
-.info-row{display:flex;border-top:1px solid #eaecf0;padding:0.3em 0}
-.info-th{width:35%;font-weight:bold;padding-right:0.5em}
-.info-td{width:65%}
+.title-bar {
+    background-color: #000080;
+    color: white;
+    font-weight: bold;
+    padding: 4px 6px;
+    font-family: "MS UI Gothic", "ＭＳ Ｐゴシック", sans-serif;
+}
 
-/* 見出しの修正 (clear:bothを消して、overflow:hiddenで線を制御) */
-h2{border-bottom:1px solid #a2a9b1;padding-bottom:0.25em;font-weight:normal;font-family:"Linux Libertine","Georgia","Times",serif;margin-top:1.5em;overflow:hidden}
-h3{font-weight:bold;margin-top:1.2em;overflow:hidden}
+.toolbar {
+    padding: 6px;
+    border-bottom: 1px solid #808080;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.toolbar-group {
+    border: 1px solid #a0a0a0;
+    padding: 4px 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #e2dfdb;
+}
+.toolbar-group span {
+    font-size: 0.9em;
+    color: #333;
+    font-weight: bold;
+}
 
-.internal-link, .external-link{color:#0645ad;text-decoration:none}
-.internal-link:hover, .external-link:hover{text-decoration:underline}
-.internal-link:active, .external-link:active{color:#f28b00}
+/* ボタン */
+button {
+    background-color: #d4d0c8;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #404040;
+    border-right: 2px solid #404040;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    color: black;
+    vertical-align: middle;
+    white-space: nowrap; 
+}
 
-.edit-toolbar{background:#f8f9fa;border:1px solid #c8ccd1;border-bottom:none;padding:0.2em;display:flex;gap:0.5em;align-items:center}
-.edit-btn{background:none;border:1px solid transparent;cursor:pointer;padding:0.3em;border-radius:2px;color:#555}
-.edit-btn:hover{background:#eaecf0;border-color:#c8ccd1}
-#edit-textarea{width:100%;height:60vh;box-sizing:border-box;font-family:monospace;padding:0.5em;border:1px solid #c8ccd1;resize:vertical}
-#save-btn{margin-top:1em;padding:0.5em 1.5em;background:#36c;color:#fff;border:none;border-radius:2px;cursor:pointer;font-weight:bold}
-#save-btn:hover{background:#447ff5}
-.search-result-item{margin-bottom:1em}
-.search-result-item h3{margin:0 0 0.2em 0}
-.search-result-item h3 a{color:#0645ad;text-decoration:none}
-.search-result-item h3 a:hover{text-decoration:underline}
+button:active {
+    border-top: 2px solid #404040;
+    border-left: 2px solid #404040;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+    padding: 5px 11px 3px 13px;
+}
 
-/* インライン画像のスタイル */
-.inline-image{max-height:1.5em;vertical-align:middle;margin:0 0.2em}
+.action-btn { font-weight: bold; }
 
-.thumb{border:1px solid #c8ccd1;background-color:#f8f9fa;padding:3px;margin-bottom:0.5em}
-.tright{float:right;clear:right;margin-left:1.4em}
-.tleft{float:left;clear:left;margin-right:1.4em}
-.thumbinner{border:1px solid #ccc;background-color:#fff;padding:1px}
-.thumbimage{border:1px solid #ccc;max-width:100%;height:auto}
-.thumbcaption{font-size:0.8em;line-height:1.4em;padding:3px;color:#222;text-align:left}
+/* 入力欄 */
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
+    border-top: 2px solid #404040;
+    border-left: 2px solid #404040;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+    padding: 4px;
+    font-family: inherit;
+    background-color: white;
+    box-sizing: border-box;
+}
+
+.classic-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 0;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4z" fill="%23000"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 4px center;
+    padding-right: 18px; 
+}
+
+.screen {
+    padding: 15px;
+    border: 2px inset #ffffff;
+    margin-top: 5px;
+    background-color: #d4d0c8;
+}
+
+.search-grid, .form-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr 100px 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.search-grid label, .form-grid label { text-align: left; }
+.search-actions { text-align: right; margin-bottom: 10px; }
+.large-textarea { width: 98%; height: 150px; margin-top: 5px; }
+
+.editor-section { margin-top: 15px; }
+.editor-toolbar {
+    margin-bottom: 5px;
+    display: flex;
+    gap: 5px;
+}
+.editor-toolbar button {
+    padding: 2px 8px;
+    font-size: 0.9em;
+}
+
+/* =========================================
+   テーブル共通レイアウト
+========================================= */
+table {
+    width: 100%;
+    table-layout: fixed; 
+    border-collapse: collapse;
+    background-color: white;
+    border: 2px solid #808080;
+}
+th, td { 
+    border: 1px solid #c0c0c0; 
+    padding: 6px; 
+    text-align: left; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    vertical-align: middle;
+}
+th { 
+    background-color: #d4d0c8; 
+    border-top: 1px solid white; 
+    border-left: 1px solid white; 
+    text-align: center;
+}
+
+/* 各種カラム幅の指定クラス */
+.col-id { width: 60px; text-align: center; }
+.col-thumb { width: 60px; text-align: center; }
+.col-gender { width: 50px; text-align: center; }
+.col-age { width: 50px; text-align: center; }
+.col-genre { width: 140px; text-align: center; }
+.col-status { width: 70px; text-align: center; }
+.col-action { width: 125px; text-align: center; } /* 編集・削除ボタンが入るように！ */
+
+.info-table th { width: 18%; }
+.info-table td { width: 32%; white-space: normal; }
+
+/* サムネイル画像 */
+.thumb-img {
+    width: 40px;
+    height: 50px;
+    object-fit: cover;
+    background-color: #eee;
+    border: 1px solid #aaa;
+    display: block;
+    margin: 0 auto;
+}
+
+/* 状態の色 */
+.status-unread { color: #888; font-weight: bold; }
+.status-reading { color: #008000; font-weight: bold; }
+.status-read { color: #d32f2f; font-weight: bold; }
+
+/* プロフィール・詳細画面 */
+.profile-header {
+    display: flex;
+    margin-bottom: 15px;
+    border: 2px inset #ffffff;
+    background: white;
+    padding: 10px;
+}
+.photo-container {
+    width: 120px;
+    height: 150px;
+    border: 1px solid #808080;
+    margin-right: 20px;
+    background: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.photo-container img { max-width: 100%; max-height: 100%; object-fit: cover; }
+.profile-title { flex-grow: 1; }
+#view-id-rank { font-weight: bold; font-size: 1.2em; margin-bottom: 5px; }
+.kana-text { font-size: 0.8em; color: #666; }
+
+.section-title {
+    border-bottom: 2px solid #808080;
+    font-size: 1.2em;
+    padding-bottom: 2px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.wiki-content { background: white; border: 2px inset #ffffff; padding: 10px; min-height: 50px; white-space: pre-wrap; line-height: 1.5; }
+.wiki-content h3 { border-bottom: 1px solid #c0c0c0; font-size: 1.1em; margin-top: 15px; margin-bottom: 5px; }
+.wiki-content a { color: blue; text-decoration: underline; cursor: pointer; }
+
+.family-row, .study-row, .history-row { margin-bottom: 6px; }
+.family-row input, .study-row input, .study-row select, .history-row input { margin-right: 5px; }
+
+/* =========================================
+   モードごとの表示切替用設定
+========================================= */
+body.mode-person .other-only { display: none !important; }
+body.mode-other .person-only { display: none !important; }
+body.mode-book .person-only, body.mode-book .other-only,
+body.mode-diary .person-only, body.mode-diary .other-only,
+body.mode-money .person-only, body.mode-money .other-only {
+    display: none !important;
+}
